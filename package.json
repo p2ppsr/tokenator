@@ -7,5 +7,15 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Peer-to-peer Privacy Systems Research, LLC",
-  "license": "Open BSV License"
+  "license": "Open BSV License",
+  "dependencies": {
+    "@babbage/sdk": "^0.4.19",
+    "authrite-js": "^0.2.9",
+    "babbage-bsv": "^0.1.1",
+    "pushdrop": "^0.1.11",
+    "utxoninja": "^0.2.44"
+  },
+  "devDependencies": {
+    "standard": "^17.0.0"
+  }
 }
