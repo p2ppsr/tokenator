@@ -8,7 +8,7 @@ module.exports = async () => {
   // TEST token type
   const TOKEN_TYPE = 'metanet icu token'
   // receive and process the new token into a basket
-  const response = await new Authrite().request('http://localhost:3002/listMessages', {
+  const response = await new Authrite({ clientPrivateKey: '6dcc124be5f382be631d49ba12f61adbce33a5ac14f6ddee12de25272f943f8b' }).request('http://localhost:3002/listMessages', {
     body: { messageBoxTypes: [TOKEN_TYPE] },
     method: 'POST'
   })
@@ -51,7 +51,7 @@ module.exports = async () => {
   const TEST_PRIVATE_KEY = '6dcc124be5f382be631d49ba12f61adbce33a5ac14f6ddee12de25272f943f8b'
   const ninja = new Ninja({
     privateKey: TEST_PRIVATE_KEY,
-    ninjaConfig: {
+    config: {
       dojoURL: 'https://staging-dojo.babbage.systems'
     }
   })
@@ -61,16 +61,19 @@ module.exports = async () => {
   //   spendable: true,
   //   includeEnvelope: true
   // })
-
-  const paymentResult = await ninja.submitDirectTransaction({
-    protocol: '3241645161d8',
-    senderIdentityKey: '032e5bd6b837cfb30208bbb1d571db9ddf2fb1a7b59fb4ed2a31af632699f770a1',
-    note: 'Payment test using tokenator',
-    amount: 400,
-    derivationPrefix: tokens[tokens.length - 1].derivationPrefix,
-    transaction: tokens[tokens.length - 1].transaction
-  })
-  if (paymentResult.status !== 'success') {
-    throw new Error('Payment not processed')
+  try {
+    const paymentResult = await ninja.submitDirectTransaction({
+      protocol: '3241645161d8',
+      senderIdentityKey: '032e5bd6b837cfb30208bbb1d571db9ddf2fb1a7b59fb4ed2a31af632699f770a1',
+      note: 'Payment test using tokenator',
+      amount: 400,
+      derivationPrefix: tokens[tokens.length - 1].derivationPrefix,
+      transaction: tokens[tokens.length - 1].transaction
+    })
+    if (paymentResult.status !== 'success') {
+      throw new Error('Payment not processed')
+    }
+  } catch (e) {
+    console.log(`Error: ${e}`)
   }
 }

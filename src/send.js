@@ -51,7 +51,7 @@ module.exports = async (message = { type: 'metanet icu token', recipient: '03b51
       keyID: `${derivationPrefix} ${derivationSuffix}`,
       counterparty: message.recipient
     })
-    console.log(derivedPublicKey)
+
     // Create a P2PK Bitcoin script
     const script = new bsv.Script(
       bsv.Script.fromAddress(bsv.Address.fromPublicKey(
