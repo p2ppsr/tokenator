@@ -4,16 +4,20 @@ const { Authrite } = require('authrite-js')
 const bsv = require('babbage-bsv')
 
 const PEERSERV_HOST = 'http://localhost:3002'
-const SATOSHIS = 400
 // Define the structure for a message:
 // {
 //   type: // Ex. MetaNet ICU Token, or a 3241645161d8 payment
 //   recipient: // Who is this message going to?
 //   body: // what is the contents of this message? The structure can be an arbituarily define structure, but it must follow the guidlines of the protocol type definition.
 // }
-
 // TODO: Support multiple token protocols in the future
-module.exports = async (message = { type: 'metanet icu token', recipient: '03b51d497f8c67c1416cfe1a58daa5a576a63eb0b64608922d5c4f98b6a1d9b103' }) => {
+
+/**
+ * List messages from PeerServ
+ * @param {Object} message the message to send according to the specified token protocol
+ * @returns {Object} the messages received
+ */
+module.exports = async (message = { type: 'metanet icu token', amount: 100, recipient: '03b51d497f8c67c1416cfe1a58daa5a576a63eb0b64608922d5c4f98b6a1d9b103' }) => {
   // Validate the general message structure
   if (!message) {
     const e = new Error('You must provide a message to send!')
@@ -62,15 +66,16 @@ module.exports = async (message = { type: 'metanet icu token', recipient: '03b51
     // Create a new Bitcoin transaction
     const payment = await createAction({
       description: 'Tokenator payment',
-      outputs: [{ script, satoshis: SATOSHIS }]
+      outputs: [{ script, satoshis: message.amount }]
     })
 
     message.body = {
       derivationPrefix,
       transaction: {
         ...payment,
-        outputs: [{ vout: 0, satoshis: SATOSHIS, derivationSuffix }]
-      }
+        outputs: [{ vout: 0, satoshis: message.amount, derivationSuffix }]
+      },
+      amount: message.amount
     }
   } else {
     const e = new Error('Your message type is not currently supported!')
