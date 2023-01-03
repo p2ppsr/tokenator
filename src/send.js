@@ -17,7 +17,7 @@ const PEERSERV_HOST = 'http://localhost:3002'
  * @param {Object} message the message to send according to the specified token protocol
  * @returns {Object} the messages received
  */
-module.exports = async (message = { type: 'metanet icu token', amount: 100, recipient: '03b51d497f8c67c1416cfe1a58daa5a576a63eb0b64608922d5c4f98b6a1d9b103' }) => {
+module.exports = async (message) => {
   // Validate the general message structure
   if (!message) {
     const e = new Error('You must provide a message to send!')

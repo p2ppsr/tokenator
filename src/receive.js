@@ -1,4 +1,4 @@
-// const { submitDirectTransaction, getTransactionOutputs, decrypt } = require('@babbage/sdk')
+const BabbageSDK = require('@babbage/sdk')
 // const pushdrop = require('pushdrop')
 const { Authrite } = require('authrite-js')
 // const bsv = require('babbage-bsv')
@@ -6,13 +6,21 @@ const Ninja = require('utxoninja')
 
 /**
  * Receive and process messages from PeerServ
- * @param {Array} messageTypes the types of messages to fetch
+ * @param {Object} obj All params inside an object
+ * @param {Array} obj.messageTypes the types of messages to fetch
+ * @param {String} obj.privateKey private key to use as signing strategy (optional: defaults to Babbage signing strategy))
  * @returns {Array} messages received from PeerServ
  */
-module.exports = async ({ messageTypes }) => {
+module.exports = async ({ messageTypes, privateKey }) => { // Note: Probably not great to require private key here?
   // Receive and process the new token(s) into a basket
-  const EXAMPLE_PRIV_KEY = '6dcc124be5f382be631d49ba12f61adbce33a5ac14f6ddee12de25272f943f8b'
-  const response = await new Authrite({ clientPrivateKey: EXAMPLE_PRIV_KEY }).request('http://localhost:3002/checkMessages', {
+  // Use BabbageSDK or private key for signing strategy
+  let authriteClient
+  if (!privateKey) {
+    authriteClient = new Authrite()
+  } else {
+    authriteClient = new Authrite({ clientPrivateKey: privateKey })
+  }
+  const response = await authriteClient.request('http://localhost:3002/checkMessages', {
     body: {
       filterBy: {
         messageBoxTypes: messageTypes
@@ -29,19 +37,27 @@ module.exports = async ({ messageTypes }) => {
   // TODO: validate token contents etc.
   const tokens = messages.map(x => JSON.parse(x.body))
 
-  const ninja = new Ninja({
-    privateKey: EXAMPLE_PRIV_KEY,
-    config: {
-      dojoURL: 'https://staging-dojo.babbage.systems'
+  // Figure out what the signing strategy should be
+  // Note: This should probably be refactored to be part of Ninja
+  const getLib = () => {
+    if (!privateKey) {
+      return BabbageSDK
     }
-  })
+    const ninja = new Ninja({
+      privateKey,
+      config: {
+        dojoURL: 'https://staging-dojo.babbage.systems'
+      }
+    })
+    return ninja
+  }
 
   const paymentsReceived = []
   for (const [i, message] of messages.entries()) {
     try {
-      const paymentResult = await ninja.submitDirectTransaction({
+      const paymentResult = await getLib().submitDirectTransaction({
         protocol: '3241645161d8',
-        senderIdentityKey: '032e5bd6b837cfb30208bbb1d571db9ddf2fb1a7b59fb4ed2a31af632699f770a1',
+        senderIdentityKey: message.sender,
         note: 'Payment test using tokenator',
         amount: message.amount,
         derivationPrefix: tokens[i].derivationPrefix,
