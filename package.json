@@ -2,7 +2,7 @@
   "name": "tokenator",
   "version": "0.1.0",
   "description": "The ultimate tool for creating and transfering tokens",
-  "main": "index.js",
+  "main": "src/tokenator.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "standard --fix .",
