@@ -9,7 +9,7 @@ const Ninja = require('utxoninja')
  * @param {Array} messageTypes the types of messages to fetch
  * @returns {Array} messages received from PeerServ
  */
-module.exports = async (messageTypes) => {
+module.exports = async ({ messageTypes }) => {
   // Receive and process the new token(s) into a basket
   const EXAMPLE_PRIV_KEY = '6dcc124be5f382be631d49ba12f61adbce33a5ac14f6ddee12de25272f943f8b'
   const response = await new Authrite({ clientPrivateKey: EXAMPLE_PRIV_KEY }).request('http://localhost:3002/checkMessages', {
