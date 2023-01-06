@@ -2,14 +2,16 @@ const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
 const path = require('path')
 
 module.exports = {
-  entry: './src/tokenator.js',
+  entry: {
+    Tokenator: './src/tokenator.js',
+    PaymentTokenator: './src/ExampleExtensions/PaymentTokenator.js',
+    EmailTokenator: './src/ExampleExtensions/EmailTokenator.js'
+  },
   output: {
     globalObject: 'this',
-    library: {
-      type: 'umd',
-      name: 'Tokenator'
-    },
-    filename: 'tokenator.js'
+    library: ['Tokenator', 'PaymentTokenator', 'EmailTokenator'],
+    libraryTarget: 'umd',
+    filename: '[name].bundle.js'
   },
   plugins: [
     new NodePolyfillPlugin()
