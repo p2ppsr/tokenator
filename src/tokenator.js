@@ -29,19 +29,19 @@ class Tokenator {
     // Validate the general message structure
     if (!message) {
       const e = new Error('You must provide a message to send!')
-      e.code = 'ERR_INVALID_MESSAGE'
+      e.code = 'ERR_MESSAGE_REQUIRED'
       throw e
     }
 
-    if (!message.type) {
-      const e = new Error('You must specify the message type!')
-      e.code = 'ERR_INVALID_MESSAGE_TYPE'
+    if (!message.messageBox) {
+      const e = new Error('Please provide a messageBox to send this message into!')
+      e.code = 'ERR_MESSAGEBOX_REQUIRED'
       throw e
     }
 
     if (!message.recipient) {
       const e = new Error('You must specify the message recipient!')
-      e.code = 'ERR_INVALID_MESSAGE_RECIPIENT'
+      e.code = 'ERR_MESSAGE_RECIPIENT_REQUIRED'
       throw e
     }
 
@@ -50,7 +50,7 @@ class Tokenator {
     const messageBody = {}
 
     // Determine what type of message this is
-    if (message.type === 'metanet icu token') {
+    if (message.messageBox) {
     // Derive a new public key for the recipient
       const derivationPrefix = require('crypto')
         .randomBytes(10)
@@ -96,22 +96,120 @@ class Tokenator {
       body: {
         message: {
           recipient: message.recipient, // Should this be the derived public key?
-          type: message.type,
-          body: message.body
+          messageBox: message.messageBox,
+          body: JSON.stringify(message.body)
         }
       },
       method: 'POST'
     })
 
-    console.log('Token created' + JSON.stringify(messageBody))
+    console.log('Token created' + JSON.stringify(message))
+  }
+
+  // /**
+  //  * Receive and process messages from PeerServ
+  //  * @param {Array} messageTypes the types of messages to fetch
+  //  * @returns {Array} messages received from PeerServ
+  //  */
+  // async receiveMessages (messageTypes) {
+  //   // Receive and process the new token(s) into a basket
+  //   // Use BabbageSDK or private key for signing strategy
+  //   let authriteClient
+  //   if (!this.clientPrivateKey) {
+  //     authriteClient = new Authrite()
+  //   } else {
+  //     authriteClient = new Authrite({ clientPrivateKey: this.clientPrivateKey })
+  //   }
+  //   const response = await authriteClient.request(`${this.peerServHost}/checkMessages`, {
+  //     body: {
+  //       filterBy: {
+  //         messageBoxTypes: messageTypes
+  //       },
+  //       isReceiving: true
+  //     },
+  //     method: 'POST'
+  //   })
+
+  //   // Parse out the messages
+  //   const messages = JSON.parse(Buffer.from(response.body).toString('utf8')).messages
+  //   console.log(messages)
+
+  //   // TODO: validate token contents etc.
+  //   const tokens = messages.map(x => JSON.parse(x.body))
+
+  //   // Figure out what the signing strategy should be
+  //   // Note: This should probably be refactored to be part of Ninja
+  //   const getLib = () => {
+  //     if (!this.clientPrivateKey) {
+  //       return BabbageSDK
+  //     }
+  //     const ninja = new Ninja({
+  //       privateKey: this.clientPrivateKey,
+  //       config: {
+  //         dojoURL: 'https://staging-dojo.babbage.systems'
+  //       }
+  //     })
+  //     return ninja
+  //   }
+
+  //   const paymentsReceived = []
+  //   for (const [i, message] of messages.entries()) {
+  //     try {
+  //       const paymentResult = await getLib().submitDirectTransaction({
+  //         protocol: '3241645161d8',
+  //         senderIdentityKey: message.sender,
+  //         note: 'PeerServ payment',
+  //         amount: message.amount,
+  //         derivationPrefix: tokens[i].derivationPrefix,
+  //         transaction: tokens[i].transaction
+  //       })
+  //       if (paymentResult.status !== 'success') {
+  //         throw new Error('Payment not processed')
+  //       }
+  //       paymentsReceived.push(paymentResult)
+  //     } catch (e) {
+  //       console.log(`Error: ${e}`)
+  //     }
+  //   }
+  //   return paymentsReceived
+  // }
+
+  /**
+   * List messages from PeerServ
+   * @param {Array} messageTypes the types of messages to fetch
+   * @param {Boolean} acknowledged specifies if acknowledged or unacknowledged messages should be returned
+   * @returns {Array} messages received from PeerServ
+   */
+  async listMessages ({ messageBoxes = [] } = {}) {
+    // Use BabbageSDK or private key for signing strategy
+    let authriteClient
+    if (!this.clientPrivateKey) {
+      authriteClient = new Authrite()
+    } else {
+      authriteClient = new Authrite({ clientPrivateKey: this.clientPrivateKey })
+    }
+    const response = await authriteClient.request(`${this.peerServHost}/listMessages`, {
+      body: {
+        messageBoxes
+      },
+      method: 'POST'
+    })
+
+    const parsedResponse = JSON.parse(Buffer.from(response.body).toString('utf8'))
+    if (parsedResponse.status === 'error') {
+      const e = new Error(parsedResponse.description)
+      e.code = '?'
+      throw e
+    }
+    return parsedResponse.messages
   }
 
   /**
    * Receive and process messages from PeerServ
-   * @param {Array} messageTypes the types of messages to fetch
+   * @param {Array} messageIds the messages to read
    * @returns {Array} messages received from PeerServ
    */
-  async receiveMessages (messageTypes) {
+  async readMessage ({ messageIds }) {
     // Receive and process the new token(s) into a basket
     // Use BabbageSDK or private key for signing strategy
     let authriteClient
@@ -120,19 +218,26 @@ class Tokenator {
     } else {
       authriteClient = new Authrite({ clientPrivateKey: this.clientPrivateKey })
     }
-    const response = await authriteClient.request(`${this.peerServHost}/checkMessages`, {
+    const response = await authriteClient.request(`${this.peerServHost}/readMessage`, {
       body: {
-        filterBy: {
-          messageBoxTypes: messageTypes
-        },
-        isReceiving: true
+        messageIds
       },
       method: 'POST'
     })
 
-    // Parse out the messages
-    const messages = JSON.parse(Buffer.from(response.body).toString('utf8')).messages
-    console.log(messages)
+    // Parse out the message
+    // TODO Update for just one message
+    const parsedResponse = JSON.parse(Buffer.from(response.body).toString('utf8'))
+    if (parsedResponse.status === 'error') {
+      const e = new Error(parsedResponse.description)
+      e.code = parsedResponse.code
+      throw e
+    }
+    const messages = parsedResponse.messages
+
+    if (messages && messages.length === 0) {
+      return []
+    }
 
     // TODO: validate token contents etc.
     const tokens = messages.map(x => JSON.parse(x.body))
@@ -152,13 +257,14 @@ class Tokenator {
       return ninja
     }
 
+    const messagesProcessed = []
     const paymentsReceived = []
     for (const [i, message] of messages.entries()) {
       try {
         const paymentResult = await getLib().submitDirectTransaction({
           protocol: '3241645161d8',
           senderIdentityKey: message.sender,
-          note: 'Payment test using tokenator',
+          note: 'PeerServ payment',
           amount: message.amount,
           derivationPrefix: tokens[i].derivationPrefix,
           transaction: tokens[i].transaction
@@ -167,41 +273,24 @@ class Tokenator {
           throw new Error('Payment not processed')
         }
         paymentsReceived.push(paymentResult)
+        messagesProcessed.push(message)
       } catch (e) {
         console.log(`Error: ${e}`)
       }
     }
-    return paymentsReceived
-  }
-
-  /**
-   * List messages from PeerServ
-   * @param {Array} messageTypes the types of messages to fetch
-   * @param {Boolean} acknowledged specifies if acknowledged or unacknowledged messages should be returned
-   * @returns {Array} messages received from PeerServ
-   */
-  // TODO support other filters
-  async listMessages ({ messageTypes, acknowledged }) {
-    // Use BabbageSDK or private key for signing strategy
-    let authriteClient
-    if (!this.clientPrivateKey) {
-      authriteClient = new Authrite()
-    } else {
-      authriteClient = new Authrite({ clientPrivateKey: this.clientPrivateKey })
-    }
-    const response = await authriteClient.request(`${this.peerServHost}/checkMessages`, {
+    const acknowledged = await authriteClient.request(`${this.peerServHost}/acknowledgeMessage`, {
       body: {
-        filterBy: {
-          messageBoxTypes: messageTypes,
-          acknowledged
-        },
-        isReceiving: false
+        messageIds: messagesProcessed.map(m => m.messageId)
       },
       method: 'POST'
     })
-
-    const messages = JSON.parse(Buffer.from(response.body).toString('utf8')).messages
-    return messages
+    const parsedAcknowledged = JSON.parse(Buffer.from(acknowledged.body).toString('utf8'))
+    if (parsedAcknowledged.status === 'error') {
+      const e = new Error(parsedAcknowledged.description)
+      e.code = parsedAcknowledged.code
+      throw e
+    }
+    return paymentsReceived
   }
 }
 module.exports = Tokenator

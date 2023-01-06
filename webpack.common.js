@@ -19,8 +19,11 @@ module.exports = {
   resolve: {
     extensions: ['', '.js', '.jsx'],
     alias: {
+      'babbage-bsv': path.resolve(__dirname, 'node_modules/babbage-bsv'),
+      'safe-buffer': path.resolve(__dirname, 'node_modules/safe-buffer'),
       'bn.js': path.resolve(__dirname, 'node_modules/bn.js'),
-      'safe-buffer': path.resolve(__dirname, 'node_modules/safe-buffer')
+      'babbage-sdk': path.resolve(__dirname, 'node_modules/babbage-sdk'),
+      'authrite-js': path.resolve(__dirname, 'node_modules/authrite-js')
     }
   }
 }
