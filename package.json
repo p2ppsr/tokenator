@@ -4,6 +4,7 @@
   "description": "The ultimate tool for creating and transfering tokens",
   "main": "src/tokenator.js",
   "scripts": {
+    "doc": "documentation readme --section=API src/tokenator.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "standard --fix .",

@@ -6,7 +6,7 @@ class Tokenator {
    *
    * @public
    * @param {object} obj All parameters are given in an object.
-   * @param {String} obj.peerServHost The PeerServ host you want to connect to.
+   * @param {String} [obj.peerServHost] The PeerServ host you want to connect to.
    * @param {String} [obj.clientPrivateKey] A private key to use for mutual authentication with Authrite. (Optional - Defaults to Babbage signing strategy).
    * @constructor
    */
@@ -109,7 +109,7 @@ class Tokenator {
   /**
    * Receives messages from PeerServ
    * @param {Object} obj An object containing the messageIds
-   * @param {Array} messageIds An array of Numbers indicating which message(s) to read
+   * @param {Array}  obj.messageIds An array of Numbers indicating which message(s) to read
    * @returns {Array} messages received from PeerServ
    */
   async readMessage ({ messageIds }) {
@@ -134,7 +134,7 @@ class Tokenator {
   /**
    * Acknowledges one or more messages as having been recieved ensuring deletion of the message(s)
    * @param {Object} obj An object containing the messageIds
-   * @param {Array} obj.messageIds An array of Numbers indicating which message(s) to acknowledge
+   * @param {Array}  obj.messageIds An array of Numbers indicating which message(s) to acknowledge
    * @returns {Array} An array of messages formatted according to the particular protocol in use
    */
   async acknowledgeMessage ({ messageIds }) {

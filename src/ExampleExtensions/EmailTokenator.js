@@ -4,6 +4,9 @@ const STANDARD_EMAIL_MESSAGEBOX = 'email_inbox'
 
 /**
  * Extends the Tokenator class to enable sending email messages
+ * @param {object} obj All parameters are given in an object.
+ * @param {String} [obj.peerServHost] The PeerServ host you want to connect to.
+ * @param {String} [obj.clientPrivateKey] A private key to use for mutual authentication with Authrite. (Optional - Defaults to Babbage signing strategy).
  */
 class EmailTokenator extends Tokenator {
   constructor ({
@@ -35,7 +38,7 @@ class EmailTokenator extends Tokenator {
   /**
    * Recieves email messages according to the standard protocol
    * @param {Object} obj An object containing the messageIds
-   * @param {Array} messageIds An array of Numbers indicating which email message(s) to read
+   * @param {Array}  obj.messageIds An array of Numbers indicating which email message(s) to read
    * @returns {Array} An array of email messages
    */
   async receiveEmail ({ messageIds }) {

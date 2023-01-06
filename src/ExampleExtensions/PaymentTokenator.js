@@ -7,6 +7,9 @@ const STANDARD_PAYMENT_MESSAGEBOX = 'payment_inbox'
 
 /**
  * Extends the Tokenator class to enable peer-to-peer Bitcoin payments
+ * @param {object} obj All parameters are given in an object.
+ * @param {String} [obj.peerServHost] The PeerServ host you want to connect to.
+ * @param {String} [obj.clientPrivateKey] A private key to use for mutual authentication with Authrite. (Optional - Defaults to Babbage signing strategy).
  */
 class PaymentTokenator extends Tokenator {
   constructor ({
