@@ -12,16 +12,6 @@
         *   [Parameters](#parameters-2)
     *   [receivePayment](#receivepayment)
         *   [Parameters](#parameters-3)
-*   [constructor](#constructor)
-    *   [Parameters](#parameters-4)
-*   [sendMessage](#sendmessage)
-    *   [Parameters](#parameters-5)
-*   [listMessages](#listmessages)
-    *   [Parameters](#parameters-6)
-*   [readMessage](#readmessage)
-    *   [Parameters](#parameters-7)
-*   [acknowledgeMessage](#acknowledgemessage)
-    *   [Parameters](#parameters-8)
 
 ### PaymentTokenator
 
