@@ -77,6 +77,29 @@ class PaymentTokenator extends Tokenator {
   }
 
   /**
+   * Lists incoming payments from PeerServ
+   * @returns {Array} of incoming payments from PeerServ
+   */
+  async listIncomingPayments () {
+    // Use BabbageSDK or private key for signing strategy
+    const response = await this.authriteClient.request(`${this.peerServHost}/listMessages`, {
+      body: {
+        messageBoxes: [STANDARD_PAYMENT_MESSAGEBOX]
+      },
+      method: 'POST'
+    })
+
+    // Parse out and valid the response status
+    const parsedResponse = JSON.parse(Buffer.from(response.body).toString('utf8'))
+    if (parsedResponse.status === 'error') {
+      const e = new Error(parsedResponse.description)
+      e.code = parsedResponse.code
+      throw e
+    }
+    return parsedResponse.messages
+  }
+
+  /**
    * Recieves one or more incoming Bitcoin payments
    * @param {Object} obj An object containing the messageIds
    * @param {Array} messageIds An array of Numbers indicating which payments to recieve

@@ -8,8 +8,20 @@
     *   [Parameters](#parameters)
     *   [sendEmail](#sendemail)
         *   [Parameters](#parameters-1)
+    *   [listIncomingEmails](#listincomingemails)
     *   [receiveEmail](#receiveemail)
         *   [Parameters](#parameters-2)
+*   [constructor](#constructor)
+    *   [Parameters](#parameters-3)
+*   [sendMessage](#sendmessage)
+    *   [Parameters](#parameters-4)
+*   [listMessages](#listmessages)
+    *   [Parameters](#parameters-5)
+*   [readMessage](#readmessage)
+    *   [Parameters](#parameters-6)
+*   [acknowledgeMessage](#acknowledgemessage)
+    *   [Parameters](#parameters-7)
+
 ### EmailTokenator
 
 **Extends Tokenator**
@@ -34,6 +46,12 @@ Creates a payment token to send in a message to PeerServ
     *   `message.recipient` **[String](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The recipient of this email
     *   `message.subject` **[String](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The subject of the email
     *   `message.body` **[String](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The body of the email message
+
+#### listIncomingEmails
+
+Lists incoming emails from PeerServ
+
+Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** of incoming emails from PeerServ
 
 #### receiveEmail
 
