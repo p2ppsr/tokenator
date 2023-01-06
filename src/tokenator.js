@@ -5,7 +5,7 @@ const bsv = require('babbage-bsv')
 
 class Tokenator {
   /**
-   * Client-side API for establishing authenticated server communication
+   * Client-side API for interacting with a PeerServ
    * @public
    * @param {object} tokenator All parameters are given in an object.
    * @param {String} tokenator.peerServHost The PeerServ host you want to connect to
@@ -19,6 +19,12 @@ class Tokenator {
     this.peerServHost = peerServHost
     this.clientPrivateKey = clientPrivateKey
   }
+
+  /**
+   * //////////////////////////////////////////////////////////////////////////////////////////////////
+   * TODO: Use plugin-architecture to support many use cases (ex. payments, metanet icu tokens, etc.)
+   * //////////////////////////////////////////////////////////////////////////////////////////////////
+   */
 
   /**
    * Sends a message to a PeerServ recipient
@@ -47,7 +53,6 @@ class Tokenator {
 
     // Define a template message body to send.
     // This can be customized depending on the message protocol type
-    const messageBody = {}
 
     // Determine what type of message this is
     if (message.messageBox) {
@@ -105,74 +110,6 @@ class Tokenator {
 
     console.log('Token created' + JSON.stringify(message))
   }
-
-  // /**
-  //  * Receive and process messages from PeerServ
-  //  * @param {Array} messageTypes the types of messages to fetch
-  //  * @returns {Array} messages received from PeerServ
-  //  */
-  // async receiveMessages (messageTypes) {
-  //   // Receive and process the new token(s) into a basket
-  //   // Use BabbageSDK or private key for signing strategy
-  //   let authriteClient
-  //   if (!this.clientPrivateKey) {
-  //     authriteClient = new Authrite()
-  //   } else {
-  //     authriteClient = new Authrite({ clientPrivateKey: this.clientPrivateKey })
-  //   }
-  //   const response = await authriteClient.request(`${this.peerServHost}/checkMessages`, {
-  //     body: {
-  //       filterBy: {
-  //         messageBoxTypes: messageTypes
-  //       },
-  //       isReceiving: true
-  //     },
-  //     method: 'POST'
-  //   })
-
-  //   // Parse out the messages
-  //   const messages = JSON.parse(Buffer.from(response.body).toString('utf8')).messages
-  //   console.log(messages)
-
-  //   // TODO: validate token contents etc.
-  //   const tokens = messages.map(x => JSON.parse(x.body))
-
-  //   // Figure out what the signing strategy should be
-  //   // Note: This should probably be refactored to be part of Ninja
-  //   const getLib = () => {
-  //     if (!this.clientPrivateKey) {
-  //       return BabbageSDK
-  //     }
-  //     const ninja = new Ninja({
-  //       privateKey: this.clientPrivateKey,
-  //       config: {
-  //         dojoURL: 'https://staging-dojo.babbage.systems'
-  //       }
-  //     })
-  //     return ninja
-  //   }
-
-  //   const paymentsReceived = []
-  //   for (const [i, message] of messages.entries()) {
-  //     try {
-  //       const paymentResult = await getLib().submitDirectTransaction({
-  //         protocol: '3241645161d8',
-  //         senderIdentityKey: message.sender,
-  //         note: 'PeerServ payment',
-  //         amount: message.amount,
-  //         derivationPrefix: tokens[i].derivationPrefix,
-  //         transaction: tokens[i].transaction
-  //       })
-  //       if (paymentResult.status !== 'success') {
-  //         throw new Error('Payment not processed')
-  //       }
-  //       paymentsReceived.push(paymentResult)
-  //     } catch (e) {
-  //       console.log(`Error: ${e}`)
-  //     }
-  //   }
-  //   return paymentsReceived
-  // }
 
   /**
    * List messages from PeerServ
