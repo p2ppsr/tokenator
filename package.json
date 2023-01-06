@@ -4,7 +4,8 @@
   "description": "The ultimate tool for creating and transfering tokens",
   "main": "src/tokenator.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "lint": "standard --fix .",
     "build": "webpack --config webpack.prod.js",
     "prepublishOnly": "npm run build"
