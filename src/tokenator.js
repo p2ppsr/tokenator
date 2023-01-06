@@ -33,7 +33,7 @@ class Tokenator {
    * @param {string} message.recipient
    * @param {string} message.messageBox
    * @param {string} message.body
-   * @returns {String} Returns a success message as a string
+   * @returns {String} a success message as a string
    */
   async sendMessage (message) {
     // Validate the general message structure
@@ -85,7 +85,7 @@ class Tokenator {
    * Lists messages from PeerServ
    * @param {Array} [messageBoxes] An array of messageBoxes names given as strings (Optional)
    * If no messageBoxes are provided, all messageBoxes belonging to the current user will be selected from
-   * @returns {Array} matching messages returned from PeerServ
+   * @returns {Array} of matching messages returned from PeerServ
    */
   async listMessages ({ messageBoxes = [] } = {}) {
     // Use BabbageSDK or private key for signing strategy
@@ -110,7 +110,7 @@ class Tokenator {
    * Receives messages from PeerServ
    * @param {Object} obj An object containing the messageIds
    * @param {Array}  obj.messageIds An array of Numbers indicating which message(s) to read
-   * @returns {Array} messages received from PeerServ
+   * @returns {Array} of messages received from PeerServ
    */
   async readMessage ({ messageIds }) {
     // Make a read request to PeerServ over Authrite
@@ -135,7 +135,7 @@ class Tokenator {
    * Acknowledges one or more messages as having been recieved ensuring deletion of the message(s)
    * @param {Object} obj An object containing the messageIds
    * @param {Array}  obj.messageIds An array of Numbers indicating which message(s) to acknowledge
-   * @returns {Array} An array of messages formatted according to the particular protocol in use
+   * @returns {Array} of messages formatted according to the particular protocol in use
    */
   async acknowledgeMessage ({ messageIds }) {
     // Make an acknowledgement request to PeerServ over Authrite
