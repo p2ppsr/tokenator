@@ -83,11 +83,12 @@ class Tokenator {
 
   /**
    * Lists messages from PeerServ
-   * @param {Array} [messageBoxes] An array of messageBoxes names given as strings (Optional)
+   * @param {Object} [obj] An object containing the messageBoxes
+   * @param {Array} [obj.messageBoxes] An array of messageBoxes names given as strings (Optional)
    * If no messageBoxes are provided, all messageBoxes belonging to the current user will be selected from
    * @returns {Array} of matching messages returned from PeerServ
    */
-  async listMessages ({ messageBoxes = [] } = {}) {
+  async listMessages ({ messageBoxes } = {}) {
     // Use BabbageSDK or private key for signing strategy
     const response = await this.authriteClient.request(`${this.peerServHost}/listMessages`, {
       body: {
