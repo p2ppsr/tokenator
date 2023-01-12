@@ -11,7 +11,7 @@ class Tokenator {
    * @constructor
    */
   constructor ({
-    peerServHost = 'https://staging-peerserv-ivi63c6zsq-uc.a.run.app',
+    peerServHost = 'https://staging-peerserv.babbage.systems',
     clientPrivateKey
   } = {}) {
     this.peerServHost = peerServHost

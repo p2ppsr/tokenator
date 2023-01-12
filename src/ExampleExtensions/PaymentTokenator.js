@@ -142,14 +142,15 @@ class PaymentTokenator extends Tokenator {
         }
         paymentsReceived.push(paymentResult)
         messagesProcessed.push(message.messageId)
+
+        // Acknowledge the payment(s) has been recieved
+        await this.acknowledgeMessage({ messageIds: messagesProcessed })
+        return paymentsReceived
       } catch (e) {
         console.log(`Error: ${e}`)
+        return 'Unable to receive payment!'
       }
     }
-
-    // Acknowledge the payment(s) has been recieved
-    await this.acknowledgeMessage({ messageIds: messagesProcessed })
-    return paymentsReceived
   }
 }
 module.exports = PaymentTokenator
