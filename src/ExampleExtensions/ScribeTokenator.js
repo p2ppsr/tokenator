@@ -166,10 +166,10 @@ class ScribeTokenator extends Tokenator {
           const ownerKey = await BabbageSDK.getPublicKey({
             protocolID: out.customInstructions.protocolID,
             keyID: out.customInstructions.keyID,
-            counterparty: out.customInstructions.counterparty // check
+            counterparty: out.customInstructions.counterparty
           })
           const result = await pushdrop.decode({
-            script: out.customInstructions.outputScript // is this necessary?
+            script: out.customInstructions.outputScript
           })
 
           // Make sure the derived ownerKey and lockingPublicKey match
@@ -202,81 +202,5 @@ class ScribeTokenator extends Tokenator {
       }
     }
   }
-
-  /**
-   * Spends a UTXO. Is this necessary? This should be handled by the Scribe app, Not Tokenator...
-   * TODO
-   */
-  // async spendToken (basket = 'scribe notes') {
-  //   // Figure out what the signing strategy should be
-  //   // Note: Should this be refactored to be part of Ninja?
-  //   const getLib = () => {
-  //     if (!this.clientPrivateKey) {
-  //       return BabbageSDK
-  //     }
-  //     const ninja = new Ninja({
-  //       privateKey: this.clientPrivateKey,
-  //       config: {
-  //         // dojoURL: this.dojoHost,
-  //         dojoURL: 'http://localhost:3102'
-  //       }
-  //     })
-  //     return ninja
-  //   }
-
-  //   const tokens = await getLib().getTransactionOutputs({
-  //     basket,
-  //     spendable: true,
-  //     includeEnvelope: true
-  //   })
-
-  //   const [tokenToRedeem] = tokens.filter(x => x.customInstructions !== null)
-  //   const customInstructions = JSON.parse(tokenToRedeem.customInstructions)
-  //   const lockingScript = customInstructions.outputScript
-
-  //   const unlockingScript = await pushdrop.redeem({
-  //     // To unlock the token, we need to use the same "todo list" protocolID
-  //     // and keyID as when we created the ToDo token before. Otherwise, the
-  //     // key won't fit the lock and the Bitcoins won't come out.
-  //     protocolID: SCRIBE_PROTOCOL_ID,
-  //     keyID: SCRIBE_KEY_ID,
-  //     counterparty: customInstructions.counterparty,
-  //     // We're telling PushDrop which previous transaction and output we want
-  //     // to unlock, so that the correct unlocking puzzle can be prepared.
-  //     prevTxId: tokenToRedeem.txid,
-  //     outputIndex: 0, // ?
-  //     // We also give PushDrop a copy of the locking puzzle ("script") that
-  //     // we want to open, which is helpful in preparing to unlock it.
-  //     lockingScript,
-  //     // Finally, the amount of Bitcoins we are expecting to unlock when the
-  //     // puzzle gets solved.
-  //     outputAmount: STANDARD_NOTE_VALUE // ?
-  //   })
-
-  //   // Now, we're going to use the unlocking puzle that PushDrop has prepared
-  //   // for us, so that the user can get their Bitcoins back.This is another
-  //   // "Action", which is just a Bitcoin transaction.
-  //   await BabbageSDK.createAction({
-  //     // Let the user know what's going on, and why they're getting some
-  //     // Bitcoins back.
-  //     description: 'redeem note...',
-  //     inputs: { // These are inputs, which unlock Bitcoin tokens.
-  //       // The input comes from the previous ToDo token, which we're now
-  //       // completing, redeeming and spending.
-  //       [tokenToRedeem.txid]: {
-  //         ...tokenToRedeem.envelope,
-  //         // The output we want to redeem is specified here, and we also give
-  //         // the unlocking puzzle ("script") from PushDrop.
-  //         outputsToRedeem: [{
-  //           index: 0, // TODO
-  //           unlockingScript,
-  //           satoshis: 1, // TODO
-  //           // Spending descriptions tell the user why this input was redeemed
-  //           spendingDescription: 'redeem a scribe note token...'
-  //         }]
-  //       }
-  //     }
-  //   })
-  // }
 }
 module.exports = ScribeTokenator
