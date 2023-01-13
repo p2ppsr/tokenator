@@ -154,6 +154,33 @@ class ScribeTokenator extends Tokenator {
     const paymentsReceived = []
     for (const [i, message] of messages.entries()) {
       try {
+        // Validate Scribe Token
+        for (const out of tokens[i].transaction.outputs) {
+          if (!out.customInstructions) {
+            const e = new Error()
+            e.code = 'ERR_INVALID_TOKEN'
+            e.description = 'Scribe tokens must include custom derivation instructions!'
+          }
+
+          // Derive the lockingPublicKey
+          const ownerKey = await BabbageSDK.getPublicKey({
+            protocolID: out.customInstructions.protocolID,
+            keyID: out.customInstructions.keyID,
+            counterparty: out.customInstructions.counterparty // check
+          })
+          const result = await pushdrop.decode({
+            script: out.customInstructions.outputScript // is this necessary?
+          })
+
+          // Make sure the derived ownerKey and lockingPublicKey match
+          if (ownerKey !== result.lockingPublicKey) {
+            const e = new Error()
+            e.code = 'ERR_INVALID_OWNER_KEY'
+            e.description = 'Derived owner key and script lockingPublicKey did not match!'
+          }
+        }
+
+        // Use Ninja to submit the validated transaction to Dojo
         const paymentResult = await getLib().submitDirectTransaction({
           protocol: APDT_PROTOCOL,
           senderIdentityKey: message.sender,
