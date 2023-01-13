@@ -10,7 +10,6 @@ const SCRIBE_PROTOCOL_ID = 'scribe'
 const SCRIBE_KEY_ID = 1
 const STANDARD_NOTE_VALUE = 1
 const SCRIBE_PROTO_ADDR = '1XKdoVfVTrtNu243T44sNFVEpeTmeYitK'
-const APDT_PROTOCOL = '974a75ed395f'
 
 /**
  * Extends the Tokenator class to enable sending Scribe tokens with custom instructions Peer-to-Peer
@@ -61,7 +60,8 @@ class ScribeTokenator extends Tokenator {
       outputs: [{
         satoshis: Number(STANDARD_NOTE_VALUE),
         script: bitcoinOutputScript,
-        basket: STANDARD_SCRIBE_BASKET,
+        // basket: STANDARD_SCRIBE_BASKET,
+        // customInstructions (if outgoing basket is desired)
         description: 'New Scribe note'
       }],
       description: 'Create a Scribe note'
@@ -163,13 +163,14 @@ class ScribeTokenator extends Tokenator {
             const e = new Error()
             e.code = 'ERR_INVALID_TOKEN'
             e.description = 'Scribe tokens must include custom derivation instructions!'
+            throw e
           }
 
           // Derive the lockingPublicKey
           const ownerKey = await BabbageSDK.getPublicKey({
             protocolID: out.customInstructions.protocolID,
             keyID: out.customInstructions.keyID,
-            sender: out.customInstructions.sender
+            counterparty: out.customInstructions.sender
           })
           const result = await pushdrop.decode({
             script: out.customInstructions.outputScript
@@ -180,19 +181,21 @@ class ScribeTokenator extends Tokenator {
             const e = new Error()
             e.code = 'ERR_INVALID_OWNER_KEY'
             e.description = 'Derived owner key and script lockingPublicKey did not match!'
+            throw e
           }
         }
 
         // Use Ninja to submit the validated transaction to Dojo
         const paymentResult = await getLib().submitDirectTransaction({
-          protocol: APDT_PROTOCOL,
           senderIdentityKey: message.sender,
           note: 'PushDrop Scribe token',
           amount: STANDARD_NOTE_VALUE,
           transaction: tokens[i].transaction
         })
         if (paymentResult.status !== 'success') {
-          throw new Error('Token not processed')
+          const e = new Error('Token not processed')
+          e.code = 'ERR_TOKEN_NOT_PROCESSED'
+          throw e
         }
         paymentsReceived.push(paymentResult)
         messagesProcessed.push(message.messageId)
