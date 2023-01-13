@@ -66,6 +66,8 @@ class ScribeTokenator extends Tokenator {
       description: 'Create a Scribe note'
     })
 
+    const sender = await BabbageSDK.getPublicKey({ identityKey: true })
+
     // Configure the standard messageBox and note body
     note.messageBox = STANDARD_SCRIBE_MESSAGEBOX
     note.body = {
@@ -77,7 +79,7 @@ class ScribeTokenator extends Tokenator {
           basket: STANDARD_SCRIBE_BASKET,
           customInstructions: {
             outputScript: bitcoinOutputScript,
-            counterparty: note.recipient,
+            sender,
             protocolID: SCRIBE_PROTOCOL_ID,
             keyID: SCRIBE_KEY_ID
           }
@@ -129,7 +131,7 @@ class ScribeTokenator extends Tokenator {
    * @param {Array} messageIds An array of Numbers indicating which tokens to recieve
    * @returns {Array} An array indicating the tokens processed
    */
-  async receiveToken ({ messageIds }) {
+  async receiveNote ({ messageIds }) {
     const messages = await this.readMessage({ messageIds })
     const tokens = messages.map(x => JSON.parse(x.body))
 
@@ -166,7 +168,7 @@ class ScribeTokenator extends Tokenator {
           const ownerKey = await BabbageSDK.getPublicKey({
             protocolID: out.customInstructions.protocolID,
             keyID: out.customInstructions.keyID,
-            counterparty: out.customInstructions.counterparty
+            sender: out.customInstructions.sender
           })
           const result = await pushdrop.decode({
             script: out.customInstructions.outputScript
