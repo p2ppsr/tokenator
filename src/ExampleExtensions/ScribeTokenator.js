@@ -4,7 +4,7 @@ const Ninja = require('utxoninja')
 const pushdrop = require('pushdrop')
 
 // Define protocol constants
-const STANDARD_PUSHDROP_MESSAGEBOX = 'scribe_inbox' // Note: should be per protocol, not just pushdrop
+const STANDARD_SCRIBE_MESSAGEBOX = 'scribe_inbox'
 const STANDARD_SCRIBE_BASKET = 'scribe notes'
 const SCRIBE_PROTOCOL_ID = 'scribe'
 const SCRIBE_KEY_ID = 1
@@ -67,7 +67,7 @@ class ScribeTokenator extends Tokenator {
     })
 
     // Configure the standard messageBox and note body
-    note.messageBox = STANDARD_PUSHDROP_MESSAGEBOX
+    note.messageBox = STANDARD_SCRIBE_MESSAGEBOX
     note.body = {
       transaction: {
         ...newScribeToken,
@@ -108,7 +108,7 @@ class ScribeTokenator extends Tokenator {
     // Use BabbageSDK or private key for signing strategy
     const response = await this.authriteClient.request(`${this.peerServHost}/listMessages`, {
       body: {
-        messageBoxes: [STANDARD_PUSHDROP_MESSAGEBOX]
+        messageBoxes: [STANDARD_SCRIBE_MESSAGEBOX]
       },
       method: 'POST'
     })
