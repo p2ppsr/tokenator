@@ -4,7 +4,7 @@ const Ninja = require('utxoninja')
 const pushdrop = require('pushdrop')
 
 // Define protocol constants
-const STANDARD_PUSHDROP_MESSAGEBOX = 'pushdrop_inbox'
+const STANDARD_PUSHDROP_MESSAGEBOX = 'scribe_inbox' // Note: should be per protocol, not just pushdrop
 const STANDARD_SCRIBE_BASKET = 'scribe notes'
 const SCRIBE_PROTOCOL_ID = 'scribe'
 const SCRIBE_KEY_ID = 1
@@ -13,7 +13,7 @@ const SCRIBE_PROTO_ADDR = '1XKdoVfVTrtNu243T44sNFVEpeTmeYitK'
 const APDT_PROTOCOL = '974a75ed395f'
 
 /**
- * Extends the Tokenator class to enable send Scribe tokens with custom instructions Peer-to-Peer
+ * Extends the Tokenator class to enable sending Scribe tokens with custom instructions Peer-to-Peer
  * @param {object} obj All parameters are given in an object
  * @param {String} [obj.peerServHost] The PeerServ host you want to connect to
  * @param {String} [obj.dojoHost] The Dojo to use for UTXO management
@@ -89,10 +89,10 @@ class ScribeTokenator extends Tokenator {
   }
 
   /**
-   * Sends Bitcoin to a PeerServ recipient
-   * @param {Object} note The payment object
-   * @param {string} note.title The recipient of the payment
-   * @param {Number} note.contents The amount in satoshis to send
+   * Sends a Scribe token to a PeerServ recipient
+   * @param {Object} note The note object
+   * @param {string} note.title The title of this note
+   * @param {Number} note.contents The contents of the note
    * @param {String} note.recipient Who this note should be sent to
    */
   async sendScribeToken (note) {
@@ -101,7 +101,7 @@ class ScribeTokenator extends Tokenator {
   }
 
   /**
-   * Lists incoming tokens from PeerServ
+   * Lists incoming Scribe tokens from PeerServ
    * @returns {Array} of incoming tokens from PeerServ
    */
   async listIncomingTokens () {
@@ -124,7 +124,7 @@ class ScribeTokenator extends Tokenator {
   }
 
   /**
-   * Recieves one or more incoming Bitcoin tokens
+   * Recieves one or more incoming Scribe tokens
    * @param {Object} obj An object containing the messageIds
    * @param {Array} messageIds An array of Numbers indicating which tokens to recieve
    * @returns {Array} An array indicating the tokens processed
@@ -180,76 +180,76 @@ class ScribeTokenator extends Tokenator {
    * Spends a UTXO. Is this necessary? This should be handled by the Scribe app, Not Tokenator...
    * TODO
    */
-  async spendToken (basket = 'scribe notes') {
-    // Figure out what the signing strategy should be
-    // Note: Should this be refactored to be part of Ninja?
-    const getLib = () => {
-      if (!this.clientPrivateKey) {
-        return BabbageSDK
-      }
-      const ninja = new Ninja({
-        privateKey: this.clientPrivateKey,
-        config: {
-          // dojoURL: this.dojoHost,
-          dojoURL: 'http://localhost:3102'
-        }
-      })
-      return ninja
-    }
+  // async spendToken (basket = 'scribe notes') {
+  //   // Figure out what the signing strategy should be
+  //   // Note: Should this be refactored to be part of Ninja?
+  //   const getLib = () => {
+  //     if (!this.clientPrivateKey) {
+  //       return BabbageSDK
+  //     }
+  //     const ninja = new Ninja({
+  //       privateKey: this.clientPrivateKey,
+  //       config: {
+  //         // dojoURL: this.dojoHost,
+  //         dojoURL: 'http://localhost:3102'
+  //       }
+  //     })
+  //     return ninja
+  //   }
 
-    const tokens = await getLib().getTransactionOutputs({
-      basket,
-      spendable: true,
-      includeEnvelope: true
-    })
+  //   const tokens = await getLib().getTransactionOutputs({
+  //     basket,
+  //     spendable: true,
+  //     includeEnvelope: true
+  //   })
 
-    const [tokenToRedeem] = tokens.filter(x => x.customInstructions !== null)
-    const customInstructions = JSON.parse(tokenToRedeem.customInstructions)
-    const lockingScript = customInstructions.outputScript
+  //   const [tokenToRedeem] = tokens.filter(x => x.customInstructions !== null)
+  //   const customInstructions = JSON.parse(tokenToRedeem.customInstructions)
+  //   const lockingScript = customInstructions.outputScript
 
-    const unlockingScript = await pushdrop.redeem({
-      // To unlock the token, we need to use the same "todo list" protocolID
-      // and keyID as when we created the ToDo token before. Otherwise, the
-      // key won't fit the lock and the Bitcoins won't come out.
-      protocolID: SCRIBE_PROTOCOL_ID,
-      keyID: SCRIBE_KEY_ID,
-      counterparty: customInstructions.counterparty,
-      // We're telling PushDrop which previous transaction and output we want
-      // to unlock, so that the correct unlocking puzzle can be prepared.
-      prevTxId: tokenToRedeem.txid,
-      outputIndex: 0, // ?
-      // We also give PushDrop a copy of the locking puzzle ("script") that
-      // we want to open, which is helpful in preparing to unlock it.
-      lockingScript,
-      // Finally, the amount of Bitcoins we are expecting to unlock when the
-      // puzzle gets solved.
-      outputAmount: STANDARD_NOTE_VALUE // ?
-    })
+  //   const unlockingScript = await pushdrop.redeem({
+  //     // To unlock the token, we need to use the same "todo list" protocolID
+  //     // and keyID as when we created the ToDo token before. Otherwise, the
+  //     // key won't fit the lock and the Bitcoins won't come out.
+  //     protocolID: SCRIBE_PROTOCOL_ID,
+  //     keyID: SCRIBE_KEY_ID,
+  //     counterparty: customInstructions.counterparty,
+  //     // We're telling PushDrop which previous transaction and output we want
+  //     // to unlock, so that the correct unlocking puzzle can be prepared.
+  //     prevTxId: tokenToRedeem.txid,
+  //     outputIndex: 0, // ?
+  //     // We also give PushDrop a copy of the locking puzzle ("script") that
+  //     // we want to open, which is helpful in preparing to unlock it.
+  //     lockingScript,
+  //     // Finally, the amount of Bitcoins we are expecting to unlock when the
+  //     // puzzle gets solved.
+  //     outputAmount: STANDARD_NOTE_VALUE // ?
+  //   })
 
-    // Now, we're going to use the unlocking puzle that PushDrop has prepared
-    // for us, so that the user can get their Bitcoins back.This is another
-    // "Action", which is just a Bitcoin transaction.
-    await BabbageSDK.createAction({
-      // Let the user know what's going on, and why they're getting some
-      // Bitcoins back.
-      description: 'redeem note...',
-      inputs: { // These are inputs, which unlock Bitcoin tokens.
-        // The input comes from the previous ToDo token, which we're now
-        // completing, redeeming and spending.
-        [tokenToRedeem.txid]: {
-          ...tokenToRedeem.envelope,
-          // The output we want to redeem is specified here, and we also give
-          // the unlocking puzzle ("script") from PushDrop.
-          outputsToRedeem: [{
-            index: 0, // TODO
-            unlockingScript,
-            satoshis: 1, // TODO
-            // Spending descriptions tell the user why this input was redeemed
-            spendingDescription: 'redeem a scribe note token...'
-          }]
-        }
-      }
-    })
-  }
+  //   // Now, we're going to use the unlocking puzle that PushDrop has prepared
+  //   // for us, so that the user can get their Bitcoins back.This is another
+  //   // "Action", which is just a Bitcoin transaction.
+  //   await BabbageSDK.createAction({
+  //     // Let the user know what's going on, and why they're getting some
+  //     // Bitcoins back.
+  //     description: 'redeem note...',
+  //     inputs: { // These are inputs, which unlock Bitcoin tokens.
+  //       // The input comes from the previous ToDo token, which we're now
+  //       // completing, redeeming and spending.
+  //       [tokenToRedeem.txid]: {
+  //         ...tokenToRedeem.envelope,
+  //         // The output we want to redeem is specified here, and we also give
+  //         // the unlocking puzzle ("script") from PushDrop.
+  //         outputsToRedeem: [{
+  //           index: 0, // TODO
+  //           unlockingScript,
+  //           satoshis: 1, // TODO
+  //           // Spending descriptions tell the user why this input was redeemed
+  //           spendingDescription: 'redeem a scribe note token...'
+  //         }]
+  //       }
+  //     }
+  //   })
+  // }
 }
 module.exports = ScribeTokenator
