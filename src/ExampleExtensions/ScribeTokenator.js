@@ -41,7 +41,8 @@ class ScribeTokenator extends Tokenator {
       // The plaintext for encryption is what the user put into the text area
       plaintext: Uint8Array.from(Buffer.from(JSON.stringify(note))),
       protocolID: SCRIBE_PROTOCOL_ID,
-      keyID: SCRIBE_KEY_ID
+      keyID: SCRIBE_KEY_ID,
+      counterparty: note.recipient
     })
 
     // Create a new scribe token
