@@ -1,13 +1,13 @@
 const Tokenator = require('../tokenator')
 const BabbageSDK = require('@babbage/sdk')
 const Ninja = require('utxoninja')
-const bsv = require('babbage-bsv')
 const pushdrop = require('pushdrop')
 
 // Define protocol constants
 const STANDARD_PUSHDROP_MESSAGEBOX = 'pushdrop_inbox'
 const STANDARD_SCRIBE_BASKET = 'scribe notes'
 const SCRIBE_PROTOCOL_ID = 'scribe'
+const SCRIBE_KEY_ID = 1
 const STANDARD_NOTE_VALUE = 1
 const SCRIBE_PROTO_ADDR = '1XKdoVfVTrtNu243T44sNFVEpeTmeYitK'
 const APDT_PROTOCOL = '974a75ed395f'
@@ -41,21 +41,21 @@ class ScribeTokenator extends Tokenator {
       // The plaintext for encryption is what the user put into the text area
       plaintext: Uint8Array.from(Buffer.from(JSON.stringify(note))),
       protocolID: SCRIBE_PROTOCOL_ID,
-      keyID: '1'
+      keyID: SCRIBE_KEY_ID
     })
 
-    // Create a new Bitcoin token.
+    // Create a new scribe token
     const bitcoinOutputScript = await pushdrop.create({
       fields: [
         Buffer.from(SCRIBE_PROTO_ADDR),
         Buffer.from(encryptedNote)
       ],
       protocolID: SCRIBE_PROTOCOL_ID,
-      keyID: '2',
+      keyID: SCRIBE_KEY_ID,
       counterparty: note.recipient
     })
 
-    // Create a scribe token
+    // Create a transaction
     const newScribeToken = await BabbageSDK.createAction({
       outputs: [{
         satoshis: Number(STANDARD_NOTE_VALUE),
@@ -71,15 +71,17 @@ class ScribeTokenator extends Tokenator {
     note.body = {
       transaction: {
         ...newScribeToken,
-        outputs: [{ 
-          vout: 0, 
+        outputs: [{
+          vout: 0,
           satoshis: STANDARD_NOTE_VALUE,
           basket: STANDARD_SCRIBE_BASKET,
           customInstructions: {
             outputScript: bitcoinOutputScript,
-            counterparty: note.recipient
-          } 
-        }],
+            counterparty: note.recipient,
+            protocolID: SCRIBE_PROTOCOL_ID,
+            keyID: SCRIBE_KEY_ID
+          }
+        }]
       },
       amount: note.amount
     }
@@ -195,48 +197,48 @@ class ScribeTokenator extends Tokenator {
       return ninja
     }
 
-    let tokens = await getLib().getTransactionOutputs({
+    const tokens = await getLib().getTransactionOutputs({
       basket,
       spendable: true,
       includeEnvelope: true
     })
-  
-    let [tokenToRedeem] = tokens.filter(x => x.customInstructions !== null)
-    let customInstructions = JSON.parse(tokenToRedeem.customInstructions)
-    let lockingScript = customInstructions.outputScript
+
+    const [tokenToRedeem] = tokens.filter(x => x.customInstructions !== null)
+    const customInstructions = JSON.parse(tokenToRedeem.customInstructions)
+    const lockingScript = customInstructions.outputScript
 
     const unlockingScript = await pushdrop.redeem({
-      // To unlock the token, we need to use the same "todo list" protocolID 
-      // and keyID as when we created the ToDo token before. Otherwise, the 
+      // To unlock the token, we need to use the same "todo list" protocolID
+      // and keyID as when we created the ToDo token before. Otherwise, the
       // key won't fit the lock and the Bitcoins won't come out.
       protocolID: SCRIBE_PROTOCOL_ID,
-      keyID: '1',
+      keyID: SCRIBE_KEY_ID,
       counterparty: customInstructions.counterparty,
-      // We're telling PushDrop which previous transaction and output we want 
+      // We're telling PushDrop which previous transaction and output we want
       // to unlock, so that the correct unlocking puzzle can be prepared.
       prevTxId: tokenToRedeem.txid,
       outputIndex: 0, // ?
-      // We also give PushDrop a copy of the locking puzzle ("script") that 
+      // We also give PushDrop a copy of the locking puzzle ("script") that
       // we want to open, which is helpful in preparing to unlock it.
       lockingScript,
-      // Finally, the amount of Bitcoins we are expecting to unlock when the 
+      // Finally, the amount of Bitcoins we are expecting to unlock when the
       // puzzle gets solved.
-      outputAmount: STANDARD_NOTE_VALUE //? 
+      outputAmount: STANDARD_NOTE_VALUE // ?
     })
 
-    // Now, we're going to use the unlocking puzle that PushDrop has prepared 
-    // for us, so that the user can get their Bitcoins back.This is another 
+    // Now, we're going to use the unlocking puzle that PushDrop has prepared
+    // for us, so that the user can get their Bitcoins back.This is another
     // "Action", which is just a Bitcoin transaction.
     await BabbageSDK.createAction({
-      // Let the user know what's going on, and why they're getting some 
+      // Let the user know what's going on, and why they're getting some
       // Bitcoins back.
       description: 'redeem note...',
       inputs: { // These are inputs, which unlock Bitcoin tokens.
-        // The input comes from the previous ToDo token, which we're now 
+        // The input comes from the previous ToDo token, which we're now
         // completing, redeeming and spending.
         [tokenToRedeem.txid]: {
           ...tokenToRedeem.envelope,
-          // The output we want to redeem is specified here, and we also give 
+          // The output we want to redeem is specified here, and we also give
           // the unlocking puzzle ("script") from PushDrop.
           outputsToRedeem: [{
             index: 0, // TODO
