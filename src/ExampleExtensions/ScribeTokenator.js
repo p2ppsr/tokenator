@@ -5,7 +5,7 @@ const pushdrop = require('pushdrop')
 
 // Define protocol constants
 const STANDARD_SCRIBE_MESSAGEBOX = 'scribe_inbox'
-const STANDARD_SCRIBE_BASKET = 'scribe notes'
+const STANDARD_SCRIBE_BASKET = 'scribe'
 const SCRIBE_PROTOCOL_ID = 'scribe'
 const SCRIBE_KEY_ID = 1
 const STANDARD_NOTE_VALUE = 1
