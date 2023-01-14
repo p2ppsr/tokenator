@@ -160,9 +160,8 @@ class ScribeTokenator extends Tokenator {
         // Validate Scribe Token
         for (const out of tokens[i].transaction.outputs) {
           if (!out.customInstructions) {
-            const e = new Error()
+            const e = new Error('Scribe tokens must include custom derivation instructions!')
             e.code = 'ERR_INVALID_TOKEN'
-            e.description = 'Scribe tokens must include custom derivation instructions!'
             throw e
           }
 
@@ -170,7 +169,8 @@ class ScribeTokenator extends Tokenator {
           const ownerKey = await BabbageSDK.getPublicKey({
             protocolID: out.customInstructions.protocolID,
             keyID: out.customInstructions.keyID,
-            counterparty: out.customInstructions.sender
+            counterparty: out.customInstructions.sender,
+            forSelf: true
           })
           const result = await pushdrop.decode({
             script: out.customInstructions.outputScript
@@ -178,9 +178,8 @@ class ScribeTokenator extends Tokenator {
 
           // Make sure the derived ownerKey and lockingPublicKey match
           if (ownerKey !== result.lockingPublicKey) {
-            const e = new Error()
+            const e = new Error('Derived owner key and script lockingPublicKey did not match!')
             e.code = 'ERR_INVALID_OWNER_KEY'
-            e.description = 'Derived owner key and script lockingPublicKey did not match!'
             throw e
           }
         }
@@ -204,7 +203,7 @@ class ScribeTokenator extends Tokenator {
         await this.acknowledgeMessage({ messageIds: messagesProcessed })
         return paymentsReceived
       } catch (e) {
-        console.log(`Error: ${e}`)
+        console.error(e)
       }
     }
   }
