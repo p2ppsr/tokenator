@@ -14,10 +14,8 @@ The ultimate tool for creating and transfering tokens
     *   [Parameters](#parameters-1)
 *   [listMessages](#listmessages)
     *   [Parameters](#parameters-2)
-*   [readMessage](#readmessage)
-    *   [Parameters](#parameters-3)
 *   [acknowledgeMessage](#acknowledgemessage)
-    *   [Parameters](#parameters-4)
+    *   [Parameters](#parameters-3)
 
 ### constructor
 
@@ -27,7 +25,7 @@ Extendable client-side API for interacting with a PeerServ.
 
 *   `obj` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** All parameters are given in an object. (optional, default `{}`)
 
-    *   `obj.peerServHost` **[String](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** The PeerServ host you want to connect to. (optional, default `'https://staging-peerserv-ivi63c6zsq-uc.a.run.app'`)
+    *   `obj.peerServHost` **[String](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** The PeerServ host you want to connect to. (optional, default `'https://staging-peerserv.babbage.systems'`)
     *   `obj.clientPrivateKey` **[String](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** A private key to use for mutual authentication with Authrite. (Optional - Defaults to Babbage signing strategy).
 
 ### sendMessage
@@ -38,9 +36,9 @@ Sends a message to a PeerServ recipient
 
 *   `message` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** The object containing the message params
 
-    *   `message.recipient` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)**
-    *   `message.messageBox` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)**
-    *   `message.body` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)**
+    *   `message.recipient` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+    *   `message.messageBox` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+    *   `message.body` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
 Returns **[String](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** a success message as a string
 
@@ -53,21 +51,11 @@ Lists messages from PeerServ
 *   `obj` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** An object containing the messageBoxes (optional, default `{}`)
 
     *   `obj.messageBoxes` **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)?** An array of messageBoxes names given as strings (Optional)
+    *   `obj.messageIds` **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)?** An array of messageIds names given as numbers (Optional)
         If no messageBoxes are provided, all messageBoxes belonging to the current user will be selected from
+        You can not filter by both messageBoxes and messageIds
 
 Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** of matching messages returned from PeerServ
-
-### readMessage
-
-Receives messages from PeerServ
-
-#### Parameters
-
-*   `obj` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** An object containing the messageIds
-
-    *   `obj.messageIds` **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** An array of Numbers indicating which message(s) to read
-
-Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** of messages received from PeerServ
 
 ### acknowledgeMessage
 
