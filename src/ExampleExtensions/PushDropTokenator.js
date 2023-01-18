@@ -108,36 +108,11 @@ class PushDropTokenator extends Tokenator {
   }
 
   /**
-   * Lists incoming PushDrop tokens from PeerServ
-   * @returns {Array} of incoming tokens from PeerServ
+   * Recieves incoming PushDrop tokens
+   * @returns {Array} An array indicating the tokens received
    */
-  async listIncomingTokens () {
-    // Use BabbageSDK or private key for signing strategy
-    const response = await this.authriteClient.request(`${this.peerServHost}/listMessages`, {
-      body: {
-        messageBoxes: [this.protocolMessageBox]
-      },
-      method: 'POST'
-    })
-
-    // Parse out and valid the response status
-    const parsedResponse = JSON.parse(Buffer.from(response.body).toString('utf8'))
-    if (parsedResponse.status === 'error') {
-      const e = new Error(parsedResponse.description)
-      e.code = parsedResponse.code
-      throw e
-    }
-    return parsedResponse.messages
-  }
-
-  /**
-   * Recieves one or more incoming PushDrop tokens
-   * @param {Object} obj An object containing the messageIds
-   * @param {Array} messageIds An array of Numbers indicating which tokens to recieve
-   * @returns {Array} An array indicating the tokens processed
-   */
-  async receiveTokens ({ messageIds }) {
-    const messages = await this.listMessages({ messageIds })
+  async receivePushDropTokens () {
+    const messages = await this.listMessages({ messageBoxes: [this.protocolMessageBox] })
     const tokens = messages.map(x => JSON.parse(x.body))
 
     // Figure out what the signing strategy should be

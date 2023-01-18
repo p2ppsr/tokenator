@@ -51,9 +51,7 @@ Lists messages from PeerServ
 *   `obj` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** An object containing the messageBoxes (optional, default `{}`)
 
     *   `obj.messageBoxes` **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)?** An array of messageBoxes names given as strings (Optional)
-    *   `obj.messageIds` **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)?** An array of messageIds names given as numbers (Optional)
         If no messageBoxes are provided, all messageBoxes belonging to the current user will be selected from
-        You can not filter by both messageBoxes and messageIds
 
 Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** of matching messages returned from PeerServ
 
