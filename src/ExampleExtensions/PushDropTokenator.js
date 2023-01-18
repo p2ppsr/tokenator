@@ -38,13 +38,16 @@ class PushDropTokenator extends Tokenator {
    * @param {String} data.recipient Who this data should be sent to
    * @returns
    */
-  async createPushDropToken (data, recipient = 'self') {
+  async createPushDropToken (data) {
+    if (!data.recipient) {
+      data.recipient = 'self'
+    }
     // Encrypt the data
     const encryptedData = await BabbageSDK.encrypt({
       plaintext: Uint8Array.from(Buffer.from(JSON.stringify(data))),
       protocolID: this.protocolID,
       keyID: this.protocolKeyID,
-      counterparty: recipient
+      counterparty: data.recipient
     })
 
     // Create a new PushDrop token
@@ -55,7 +58,7 @@ class PushDropTokenator extends Tokenator {
       ],
       protocolID: this.protocolID,
       keyID: this.protocolKeyID,
-      counterparty: recipient
+      counterparty: data.recipient
     })
 
     // Create a transaction
