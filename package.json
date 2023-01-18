@@ -18,7 +18,7 @@
     "authrite-js": "^0.2.13",
     "babbage-bsv": "^0.1.1",
     "pushdrop": "^0.1.11",
-    "utxoninja": "^0.2.46"
+    "utxoninja": "^0.2.47"
   },
   "devDependencies": {
     "documentation": "^13.2.5",
