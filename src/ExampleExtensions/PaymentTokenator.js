@@ -13,7 +13,7 @@ const STANDARD_PAYMENT_MESSAGEBOX = 'payment_inbox'
  */
 class PaymentTokenator extends Tokenator {
   constructor ({
-    peerServHost = 'https://staging-peerserv-ivi63c6zsq-uc.a.run.app',
+    peerServHost = 'https://staging-peerserv.babbage.systems',
     clientPrivateKey
   } = {}) {
     super({ peerServHost, clientPrivateKey })
@@ -78,25 +78,17 @@ class PaymentTokenator extends Tokenator {
 
   /**
    * Lists incoming payments from PeerServ
+   * @param {Object} [obj] Parameters given in an obj
+   * @param {Array} [obj.messageIds] An array of Numbers indicating which payments to recieve (optional)
    * @returns {Array} of incoming payments from PeerServ
    */
-  async listIncomingPayments () {
-    // Use BabbageSDK or private key for signing strategy
-    const response = await this.authriteClient.request(`${this.peerServHost}/listMessages`, {
-      body: {
-        messageBoxes: [STANDARD_PAYMENT_MESSAGEBOX]
-      },
-      method: 'POST'
-    })
-
-    // Parse out and valid the response status
-    const parsedResponse = JSON.parse(Buffer.from(response.body).toString('utf8'))
-    if (parsedResponse.status === 'error') {
-      const e = new Error(parsedResponse.description)
-      e.code = parsedResponse.code
-      throw e
+  async listIncomingPayments ({ messageIds } = {}) {
+    // Support retrieving one or more messages
+    let messageFilter = { messageBoxes: [STANDARD_PAYMENT_MESSAGEBOX] }
+    if (messageIds) {
+      messageFilter = { messageIds }
     }
-    return parsedResponse.messages
+    return await this.listMessages(messageFilter)
   }
 
   /**
@@ -106,7 +98,7 @@ class PaymentTokenator extends Tokenator {
    * @returns {Array} An array indicating the payments processed
    */
   async receivePayment ({ messageIds }) {
-    const messages = await this.readMessage({ messageIds })
+    const messages = await this.listIncomingPayments({ messageIds })
     const tokens = messages.map(x => JSON.parse(x.body))
 
     // Figure out what the signing strategy should be
@@ -145,12 +137,12 @@ class PaymentTokenator extends Tokenator {
 
         // Acknowledge the payment(s) has been recieved
         await this.acknowledgeMessage({ messageIds: messagesProcessed })
-        return paymentsReceived
       } catch (e) {
         console.log(`Error: ${e}`)
         return 'Unable to receive payment!'
       }
     }
+    return paymentsReceived
   }
 }
 module.exports = PaymentTokenator
