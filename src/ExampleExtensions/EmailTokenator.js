@@ -45,7 +45,8 @@ class EmailTokenator extends PushDropTokenator {
       messageBox: STANDARD_EMAIL_MESSAGEBOX,
       body: {
         subject: message.subject,
-        body: message.body
+        body: message.body,
+        dateSent: new Date()
       }
     }
     return await this.sendPushDropToken(emailToken)

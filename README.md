@@ -48,10 +48,9 @@ Lists messages from PeerServ
 
 #### Parameters
 
-*   `obj` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** An object containing the messageBoxes (optional, default `{}`)
+*   `obj` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** An object containing the messageBox
 
-    *   `obj.messageBoxes` **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)?** An array of messageBoxes names given as strings (Optional)
-        If no messageBoxes are provided, all messageBoxes belonging to the current user will be selected from
+    *   `obj.messageBox` **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** The name of the messageBox to list messages from
 
 Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** of matching messages returned from PeerServ
 

@@ -77,28 +77,11 @@ class PaymentTokenator extends Tokenator {
   }
 
   /**
-   * Lists incoming payments from PeerServ
-   * @param {Object} [obj] Parameters given in an obj
-   * @param {Array} [obj.messageIds] An array of Numbers indicating which payments to recieve (optional)
-   * @returns {Array} of incoming payments from PeerServ
-   */
-  async listIncomingPayments ({ messageIds } = {}) {
-    // Support retrieving one or more messages
-    let messageFilter = { messageBoxes: [STANDARD_PAYMENT_MESSAGEBOX] }
-    if (messageIds) {
-      messageFilter = { messageIds }
-    }
-    return await this.listMessages(messageFilter)
-  }
-
-  /**
-   * Recieves one or more incoming Bitcoin payments
-   * @param {Object} obj An object containing the messageIds
-   * @param {Array} messageIds An array of Numbers indicating which payments to recieve
+   * Recieves incoming Bitcoin payments
    * @returns {Array} An array indicating the payments processed
    */
-  async receivePayment ({ messageIds }) {
-    const messages = await this.listIncomingPayments({ messageIds })
+  async receivePayments () {
+    const messages = await this.listMessages({ messageBox: [STANDARD_PAYMENT_MESSAGEBOX] })
     const tokens = messages.map(x => JSON.parse(x.body))
 
     // Figure out what the signing strategy should be
@@ -121,6 +104,8 @@ class PaymentTokenator extends Tokenator {
     const paymentsReceived = []
     for (const [i, message] of messages.entries()) {
       try {
+        // Note: custom acceptance validation could be added here.
+        // Example: if (message.amount > 100000000) {...acceptance criteria}
         const paymentResult = await getLib().submitDirectTransaction({
           protocol: '3241645161d8',
           senderIdentityKey: message.sender,
@@ -142,7 +127,10 @@ class PaymentTokenator extends Tokenator {
         return 'Unable to receive payment!'
       }
     }
-    return paymentsReceived
+    return {
+      messages,
+      paymentsReceived
+    }
   }
 }
 module.exports = PaymentTokenator

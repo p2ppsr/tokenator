@@ -1,6 +1,7 @@
+const Tokenator = require('../tokenator')
 const BabbageSDK = require('@babbage/sdk')
+const Ninja = require('utxoninja')
 const pushdrop = require('pushdrop')
-const PushDropTokenator = require('./PushDropTokenator')
 
 // Define protocol constants
 const STANDARD_SCRIBE_MESSAGEBOX = 'scribe_inbox'
@@ -17,22 +18,86 @@ const SCRIBE_PROTO_ADDR = '1XKdoVfVTrtNu243T44sNFVEpeTmeYitK'
  * @param {String} [obj.dojoHost] The Dojo to use for UTXO management
  * @param {String} [obj.clientPrivateKey] A private key to use for mutual authentication with Authrite. (Optional - Defaults to Babbage signing strategy).
  */
-class ScribeTokenator extends PushDropTokenator {
+class ScribeTokenator extends Tokenator {
   constructor ({
     peerServHost = 'https://staging-peerserv.babbage.systems',
     dojoHost = 'https://staging-dojo.babbage.systems',
     clientPrivateKey
   } = {}) {
-    super({
-      peerServHost,
-      clientPrivateKey,
-      defaultTokenValue: STANDARD_NOTE_VALUE,
+    super({ peerServHost, clientPrivateKey })
+  }
+
+  /**
+   * @param {Object} note The note object
+   * @param {string} note.title The recipient of the payment
+   * @param {Number} note.contents The amount in satoshis to send
+   * @param {String} note.recipient Who this note should be sent to
+   * @returns
+   */
+  async createScribeToken (note) {
+    // Encrypt the note
+    const encryptedNote = await BabbageSDK.encrypt({
+      // The plaintext for encryption is what the user put into the text area
+      plaintext: Uint8Array.from(Buffer.from(JSON.stringify(note))),
       protocolID: SCRIBE_PROTOCOL_ID,
-      protocolKeyID: SCRIBE_KEY_ID,
-      protocolBasketName: STANDARD_SCRIBE_BASKET,
-      protocolMessageBox: STANDARD_SCRIBE_MESSAGEBOX,
-      protocolAddress: SCRIBE_PROTO_ADDR
+      keyID: SCRIBE_KEY_ID,
+      counterparty: note.recipient ? note.recipient : 'self'
     })
+
+    // Create a new scribe token
+    const bitcoinOutputScript = await pushdrop.create({
+      fields: [
+        Buffer.from(SCRIBE_PROTO_ADDR),
+        Buffer.from(encryptedNote)
+      ],
+      protocolID: SCRIBE_PROTOCOL_ID,
+      keyID: SCRIBE_KEY_ID,
+      counterparty: note.recipient ? note.recipient : 'self'
+    })
+
+    // Create a transaction
+    const action = {
+      outputs: [{
+        satoshis: Number(STANDARD_NOTE_VALUE),
+        script: bitcoinOutputScript,
+        // basket: STANDARD_SCRIBE_BASKET,
+        // customInstructions (if outgoing basket is desired)
+        description: 'New Scribe note'
+      }],
+      description: 'Create a Scribe note'
+    }
+    if (!note.recipient) {
+      action.outputs[0].basket = STANDARD_SCRIBE_BASKET
+      // action.outputs[0].customInstructions = {
+      //   outputScript: bitcoinOutputScript,
+      //   sender,
+      //   protocolID: SCRIBE_PROTOCOL_ID,
+      //   keyID: SCRIBE_KEY_ID
+      // }
+    }
+    const newScribeToken = await BabbageSDK.createAction(action)
+    const sender = await BabbageSDK.getPublicKey({ identityKey: true })
+
+    // Configure the standard messageBox and note body
+    note.messageBox = STANDARD_SCRIBE_MESSAGEBOX
+    note.body = {
+      transaction: {
+        ...newScribeToken,
+        outputs: [{
+          vout: 0,
+          satoshis: STANDARD_NOTE_VALUE,
+          basket: STANDARD_SCRIBE_BASKET,
+          customInstructions: {
+            outputScript: bitcoinOutputScript,
+            sender,
+            protocolID: SCRIBE_PROTOCOL_ID,
+            keyID: SCRIBE_KEY_ID
+          }
+        }]
+      },
+      amount: note.amount
+    }
+    return note
   }
 
   /**
@@ -43,7 +108,113 @@ class ScribeTokenator extends PushDropTokenator {
    * @param {String} note.recipient Who this note should be sent to
    */
   async sendScribeToken (note) {
-    return await this.sendPushDropToken(note)
+    const scribeToken = await this.createScribeToken(note)
+    return await this.sendMessage(scribeToken)
+  }
+
+  /**
+   * Lists incoming Scribe tokens from PeerServ
+   * @returns {Array} of incoming tokens from PeerServ
+   */
+  async listIncomingTokens () {
+    // Use BabbageSDK or private key for signing strategy
+    const response = await this.authriteClient.request(`${this.peerServHost}/listMessages`, {
+      body: {
+        messageBoxes: [STANDARD_SCRIBE_MESSAGEBOX]
+      },
+      method: 'POST'
+    })
+
+    // Parse out and valid the response status
+    const parsedResponse = JSON.parse(Buffer.from(response.body).toString('utf8'))
+    if (parsedResponse.status === 'error') {
+      const e = new Error(parsedResponse.description)
+      e.code = parsedResponse.code
+      throw e
+    }
+    return parsedResponse.messages
+  }
+
+  /**
+   * Recieves one or more incoming Scribe tokens
+   * @param {Object} obj An object containing the messageIds
+   * @param {Array} messageIds An array of Numbers indicating which tokens to recieve
+   * @returns {Array} An array indicating the tokens processed
+   */
+  async receiveNote ({ messageIds }) {
+    const messages = await this.readMessage({ messageIds })
+    const tokens = messages.map(x => JSON.parse(x.body))
+
+    // Figure out what the signing strategy should be
+    // Note: Should this be refactored to be part of Ninja?
+    const getLib = () => {
+      if (!this.clientPrivateKey) {
+        return BabbageSDK
+      }
+      const ninja = new Ninja({
+        privateKey: this.clientPrivateKey,
+        config: {
+          // dojoURL: this.dojoHost
+          dojoURL: 'http://localhost:3102'
+        }
+      })
+      return ninja
+    }
+
+    // Recieve payments using submitDirectTransaction
+    const messagesProcessed = []
+    const paymentsReceived = []
+    for (const [i, message] of messages.entries()) {
+      try {
+        // Validate Scribe Token
+        for (const out of tokens[i].transaction.outputs) {
+          if (!out.customInstructions) {
+            const e = new Error('Scribe tokens must include custom derivation instructions!')
+            e.code = 'ERR_INVALID_TOKEN'
+            throw e
+          }
+
+          // Derive the lockingPublicKey
+          const ownerKey = await BabbageSDK.getPublicKey({
+            protocolID: out.customInstructions.protocolID,
+            keyID: out.customInstructions.keyID,
+            counterparty: out.customInstructions.sender,
+            forSelf: true
+          })
+          const result = await pushdrop.decode({
+            script: out.customInstructions.outputScript
+          })
+
+          // Make sure the derived ownerKey and lockingPublicKey match
+          if (ownerKey !== result.lockingPublicKey) {
+            const e = new Error('Derived owner key and script lockingPublicKey did not match!')
+            e.code = 'ERR_INVALID_OWNER_KEY'
+            throw e
+          }
+        }
+
+        // Use Ninja to submit the validated transaction to Dojo
+        const paymentResult = await getLib().submitDirectTransaction({
+          senderIdentityKey: message.sender,
+          note: 'PushDrop Scribe token',
+          amount: STANDARD_NOTE_VALUE,
+          transaction: tokens[i].transaction
+        })
+        if (paymentResult.status !== 'success') {
+          const e = new Error('Token not processed')
+          e.code = 'ERR_TOKEN_NOT_PROCESSED'
+          throw e
+        }
+        paymentsReceived.push(paymentResult)
+        messagesProcessed.push(message.messageId)
+
+        // Acknowledge the payment(s) has been recieved
+        await this.acknowledgeMessage({ messageIds: messagesProcessed })
+        return paymentsReceived
+      } catch (e) {
+        console.error(e)
+      }
+    }
   }
 
   /**
