@@ -1,15 +1,22 @@
 const { Authrite } = require('authrite-js')
 
-class Tokenator {
-  /**
-   * Extendable client-side API for interacting with a PeerServ.
-   *
-   * @public
-   * @param {object} obj All parameters are given in an object.
-   * @param {String} [obj.peerServHost] The PeerServ host you want to connect to.
-   * @param {String} [obj.clientPrivateKey] A private key to use for mutual authentication with Authrite. (Optional - Defaults to Babbage signing strategy).
-   * @constructor
+/**
+   * Defines the structure of a PeerServ Message
+   * @typedef {Object} PeerServMessage
+   * @property {Number} messageId - identifies a particular message
+   * @property {String} body - the body of the message (may be a stringified object)
+   * @property {String} sender - the identityKey of the sender
+   * @property {String} created_at - message creation timestamp as a string
+   * @property {String} updated_at - message update timestamp as a string
    */
+
+/**
+   * Extendable class for interacting with a PeerServ
+   * @param {object} [obj] All parameters are given in an object
+   * @param {String} [obj.peerServHost] The PeerServ host you want to connect to
+   * @param {String} [obj.clientPrivateKey] A private key to use for mutual authentication with Authrite. (Defaults to Babbage signing strategy)
+   */
+class Tokenator {
   constructor ({
     peerServHost = 'https://staging-peerserv.babbage.systems',
     clientPrivateKey
@@ -30,10 +37,10 @@ class Tokenator {
   /**
    * Sends a message to a PeerServ recipient
    * @param {Object} message The object containing the message params
-   * @param {string} message.recipient
-   * @param {string} message.messageBox
-   * @param {string} message.body
-   * @returns {String} a success message as a string
+   * @param {string} message.recipient The identityKey of the intended recipient
+   * @param {string} message.messageBox The messageBox the message should be sent to depending on the protocol being used
+   * @param {string} message.body The body of the message
+   * @returns {String} status message
    */
   async sendMessage (message) {
     // Validate the general message structure
@@ -84,8 +91,8 @@ class Tokenator {
   /**
    * Lists messages from PeerServ
    * @param {Object} obj An object containing the messageBox
-   * @param {Array} obj.messageBox The name of the messageBox to list messages from
-   * @returns {Array} of matching messages returned from PeerServ
+   * @param {Array}  obj.messageBox The name of the messageBox to list messages from
+   * @returns {Array<PeerServMessage>} of matching messages returned from PeerServ
    */
   async listMessages ({ messageBox }) {
     // Use BabbageSDK or private key for signing strategy

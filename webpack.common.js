@@ -3,13 +3,11 @@ const path = require('path')
 
 module.exports = {
   entry: {
-    Tokenator: './src/tokenator.js',
-    PaymentTokenator: './src/ExampleExtensions/PaymentTokenator.js',
-    EmailTokenator: './src/ExampleExtensions/EmailTokenator.js'
+    Tokenator: './src/tokenator.js'
   },
   output: {
     globalObject: 'this',
-    library: ['Tokenator', 'PaymentTokenator', 'EmailTokenator'],
+    library: ['Tokenator'],
     libraryTarget: 'umd',
     filename: '[name].bundle.js'
   },

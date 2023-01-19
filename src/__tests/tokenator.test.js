@@ -42,7 +42,7 @@ describe('tokenator', () => {
   it('Creates an instance of the Tokenator class', async () => {
     const tokenator = new Tokenator()
     const expectedInstance = {
-      peerServHost: 'https://staging-peerserv-ivi63c6zsq-uc.a.run.app',
+      peerServHost: 'https://staging-peerserv.babbage.systems',
       authriteClient: {}
     }
     expect(JSON.parse(JSON.stringify(tokenator))).toEqual(
@@ -88,17 +88,7 @@ describe('tokenator', () => {
       return VALID_LIST_AND_READ_RESULT
     })
     const result = await tokenator.listMessages({
-      messageBoxes: ['test_inbox']
-    })
-    expect(result).toEqual(JSON.parse(VALID_LIST_AND_READ_RESULT.body).messages)
-  })
-  it('Reads available messages', async () => {
-    const tokenator = new Tokenator()
-    tokenator.authriteClient.request.mockImplementation(() => {
-      return VALID_LIST_AND_READ_RESULT
-    })
-    const result = await tokenator.readMessage({
-      messageIds: [42]
+      messageBox: 'test_inbox'
     })
     expect(result).toEqual(JSON.parse(VALID_LIST_AND_READ_RESULT.body).messages)
   })
