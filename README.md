@@ -2,9 +2,9 @@
 
 ## Overview
 
-Tokenator is a versatile and powerful tool that allows developers to easily create and transfer tokens peer-to-peer on the MetaNet. 
+Tokenator is a versatile and powerful tool that allows developers to easily create and transfer tokens peer-to-peer on the MetaNet.
 
-The base-level class provides basic functionality such as sending, receiving, and deleting messages, while derived classes can be used to build specialized tokens for various applications. Examples of these derived classes include PaymentTokenator, EmailTokenator, PushDropTokenator, and ScribeTokenator. 
+The base-level class provides basic functionality such as sending, receiving, and deleting messages, while derived classes can be used to build specialized tokens for various applications. Examples of these derived classes include PaymentTokenator, EmailTokenator, PushDropTokenator, and ScribeTokenator.
 
 With Tokenator, developers can take advantage of the power of the BSV blockchain, the simple messageBox architecture of PeerServ, privacy and mutual authentication with Authrite, and monetization with PacketPay to create cutting-edge decentralized applications.
 
