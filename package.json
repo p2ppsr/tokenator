@@ -14,7 +14,7 @@
   "author": "Peer-to-peer Privacy Systems Research, LLC",
   "license": "Open BSV License",
   "dependencies": {
-    "authrite-js": "^0.2.13"
+    "authrite-js": "^0.2.15"
   },
   "devDependencies": {
     "documentation": "^13.2.5",
