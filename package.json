@@ -1,7 +1,7 @@
 {
   "name": "@babbage/tokenator",
   "version": "0.1.0",
-  "description": "The ultimate tool for creating and transfering tokens",
+  "description": "The ultimate tool for creating and transferring tokens",
   "main": "src/tokenator.js",
   "scripts": {
     "doc": "documentation readme --section=API src/tokenator.js",
