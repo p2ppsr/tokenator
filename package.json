@@ -1,7 +1,7 @@
 {
   "name": "@babbage/tokenator",
-  "version": "0.1.0",
-  "description": "The ultimate tool for creating and transfering tokens",
+  "version": "0.1.2",
+  "description": "The ultimate tool for creating and transferring tokens",
   "main": "src/tokenator.js",
   "scripts": {
     "doc": "documentation readme --section=API src/tokenator.js",
@@ -14,7 +14,7 @@
   "author": "Peer-to-peer Privacy Systems Research, LLC",
   "license": "Open BSV License",
   "dependencies": {
-    "authrite-js": "^0.2.13"
+    "authrite-js": "^0.2.15"
   },
   "devDependencies": {
     "documentation": "^13.2.5",
