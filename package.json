@@ -17,7 +17,7 @@
     "authrite-js": "^0.3.2"
   },
   "devDependencies": {
-    "documentation": "^13.2.5",
+    "documentation": "^14.0.2",
     "jest": "^26.6.3",
     "node-polyfill-webpack-plugin": "^1.1.4",
     "standard": "^17.0.0",
