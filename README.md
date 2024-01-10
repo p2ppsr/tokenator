@@ -122,3 +122,7 @@ Acknowledges one or more messages as having been recieved ensuring deletion of t
     *   `obj.messageIds` **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** An array of Numbers indicating which message(s) to acknowledge
 
 Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** of messages formatted according to the particular protocol in use
+
+## License
+
+The license for the code in this repository is the Open BSV License.
