@@ -1,6 +1,6 @@
 {
   "name": "@babbage/tokenator",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "The ultimate tool for creating and transferring tokens",
   "main": "src/tokenator.js",
   "scripts": {
