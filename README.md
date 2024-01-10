@@ -8,6 +8,10 @@ The base-level class provides basic functionality such as sending, receiving, an
 
 With Tokenator, developers can take advantage of the power of the BSV blockchain, the simple messageBox architecture of PeerServ, privacy and mutual authentication with Authrite, and monetization with PacketPay to create cutting-edge decentralized applications.
 
+## Installation
+
+    npm i @babbage/tokenator
+
 ## Example Usage
 
 ```js
