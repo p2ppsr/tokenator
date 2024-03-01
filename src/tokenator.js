@@ -52,7 +52,7 @@ class Tokenator {
     const roomId = `${this.myIdentityKey}-${messageBox}`
 
     if (!this.joinedRooms.some(x => x === roomId)) {
-      this.io.emit('joinRoom', roomId)
+      await this.io.emit('joinRoom', roomId)
       this.joinedRooms.push(roomId)
     }
   }
@@ -77,7 +77,7 @@ class Tokenator {
     }
 
     // Send a message to the server to get a response
-    await this.io.emit('sendMessage', { room: roomId, text: message })
+    await this.io.emit('sendMessage', { roomId: roomId, message: message })
   }
 
   /**
