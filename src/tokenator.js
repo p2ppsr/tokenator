@@ -57,8 +57,8 @@ class Tokenator {
     }
   }
 
-  listenForLiveMessages({ onMessage }) {
-    this.initializeConnection()
+  async listenForLiveMessages({ onMessage }) {
+    await this.initializeConnection()
     // Setup an event handler for receiving messages
     this.io.on('sendMessage', onMessage)
   }
