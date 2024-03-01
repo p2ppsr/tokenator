@@ -36,7 +36,7 @@ class Tokenator {
     this.joinedRooms = []
   }
 
-  async initializeConnection() {
+  async initializeConnection(messageBox) {
     // Configure the identity key
     if (!this.myIdentityKey) {
       if (!this.clientPrivateKey) {
@@ -48,18 +48,20 @@ class Tokenator {
 
     if (!this.io) {
       this.io = await this.authriteClient.connect(this.peerServHost)
+    }
+    const roomId = `${this.myIdentityKey}-${messageBox}`
 
-      // let roomId
-      // if (!recipient) {
-      //   roomId = `${recipient}-${messageBox}`
-      // }
-      // roomId = `${this.myIdentityKey}-${messageBox}`
+    if (!this.joinedRooms.some(x => x === roomId)) {
+      this.io.emit('joinRoom', roomId)
+      this.joinedRooms.push(roomId)
     }
   }
 
-  async listenForLiveMessages({ onMessage }) {
-    await this.initializeConnection()
+  async listenForLiveMessages({ onMessage, messageBox }) {
+    await this.initializeConnection(messageBox)
     // Setup an event handler for receiving messages
+    const roomId = `${this.myIdentityKey}-${messageBox}`
+    // this.io.on(roomId, onMessage)
     this.io.on('sendMessage', onMessage)
   }
 
