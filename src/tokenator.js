@@ -71,6 +71,7 @@ class Tokenator {
 
     if (!this.joinedRooms.some(x => x === roomId)) {
       await this.io.emit('joinRoom', roomId)
+      this.joinedRooms.push(roomId)
     }
 
     // Send a message to the server to get a response
