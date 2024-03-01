@@ -36,29 +36,13 @@ class Tokenator {
     this.joinedRooms = []
   }
 
-  listenForLiveMessages({ recipient, onMessage }) {
-    io.on('message', (msg) => {
-      if (msg.room === room) {
-        console.log(msg.text);
-      }
-      onMessage(msg.message)
-    })
+  listenForLiveMessages({ onMessage }) {
+    initializeConnection()
+    // Setup an event handler for receiving messages
+    this.io.on('sendMessage', onMessage)
   }
 
-  async sendLiveMessage({ message, messageBox, recipient }) {
-    // Create a new instance of the Authrite class
-    // Provide the server baseUrl, and your private identity key
-    // And make a connection request to the server with an open socket connection
-    if (!this.io) {
-      this.io = this.authriteClient.connect(this.peerServHost)
-      // Setup an event handler for receiving messages
-      this.io.on('sendMessage', (msg) => {
-        if (msg.room === room) {
-          console.log(msg.text)
-        }
-      })
-    }
-
+  async initializeConnection() {
     // Configure the identity key
     if (!this.myIdentityKey) {
       if (!this.clientPrivateKey) {
@@ -67,6 +51,20 @@ class Tokenator {
         this.myIdentityKey = this.authriteClient.clientPublicKey
       }
     }
+
+    if (!this.io) {
+      this.io = this.authriteClient.connect(this.peerServHost)
+
+      // let roomId
+      // if (!recipient) {
+      //   roomId = `${recipient}-${messageBox}`
+      // }
+      // roomId = `${this.myIdentityKey}-${messageBox}`
+    }
+  }
+
+  async sendLiveMessage({ message, messageBox, recipient }) {
+    initializeConnection()
 
     // Join a room
     const roomId = `${recipient}-${messageBox}`
