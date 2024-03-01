@@ -57,15 +57,14 @@ class Tokenator {
     }
   }
 
-
   listenForLiveMessages({ onMessage }) {
-    initializeConnection()
+    this.initializeConnection()
     // Setup an event handler for receiving messages
     this.io.on('sendMessage', onMessage)
   }
 
   async sendLiveMessage({ message, messageBox, recipient }) {
-    initializeConnection()
+    this.initializeConnection()
 
     // Join a room
     const roomId = `${recipient}-${messageBox}`
