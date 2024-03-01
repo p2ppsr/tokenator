@@ -1,4 +1,5 @@
 const { Authrite } = require('authrite-js')
+const { getPublicKey } = require('@babbage/sdk-ts')
 
 /**
    * Defines the structure of a PeerServ Message
@@ -17,7 +18,7 @@ const { Authrite } = require('authrite-js')
    * @param {String} [obj.clientPrivateKey] A private key to use for mutual authentication with Authrite. (Defaults to Babbage signing strategy)
    */
 class Tokenator {
-  constructor ({
+  constructor({
     peerServHost = 'https://staging-peerserv.babbage.systems',
     clientPrivateKey
   } = {}) {
@@ -32,6 +33,50 @@ class Tokenator {
       authriteClient = new Authrite({ clientPrivateKey: this.clientPrivateKey })
     }
     this.authriteClient = authriteClient
+    this.joinedRooms = []
+  }
+
+  listenForLiveMessages({ recipient, onMessage }) {
+    io.on('message', (msg) => {
+      if (msg.room === room) {
+        console.log(msg.text);
+      }
+      onMessage(msg.message)
+    })
+  }
+
+  async sendLiveMessage({ message, messageBox, recipient }) {
+    // Create a new instance of the Authrite class
+    // Provide the server baseUrl, and your private identity key
+    // And make a connection request to the server with an open socket connection
+    if (!this.io) {
+      this.io = this.authriteClient.connect(this.peerServHost)
+      // Setup an event handler for receiving messages
+      this.io.on('sendMessage', (msg) => {
+        if (msg.room === room) {
+          console.log(msg.text)
+        }
+      })
+    }
+
+    // Configure the identity key
+    if (!this.myIdentityKey) {
+      if (!this.clientPrivateKey) {
+        this.myIdentityKey = await getPublicKey({ identityKey: true })
+      } else {
+        this.myIdentityKey = this.authriteClient.clientPublicKey
+      }
+    }
+
+    // Join a room
+    const roomId = `${recipient}-${messageBox}`
+
+    if (!this.joinedRooms.some(x => x === roomId)) {
+      await this.io.emit('joinRoom', roomId)
+    }
+
+    // Send a message to the server to get a response
+    await this.io.emit('sendMessage', { room: roomId, text: message })
   }
 
   /**
@@ -42,7 +87,7 @@ class Tokenator {
    * @param {string} message.body The body of the message
    * @returns {String} status message
    */
-  async sendMessage (message) {
+  async sendMessage(message) {
     // Validate the general message structure
     if (!message) {
       const e = new Error('You must provide a message to send!')
@@ -94,7 +139,7 @@ class Tokenator {
    * @param {Array}  obj.messageBox The name of the messageBox to list messages from
    * @returns {Array<PeerServMessage>} of matching messages returned from PeerServ
    */
-  async listMessages ({ messageBox }) {
+  async listMessages({ messageBox }) {
     // Use BabbageSDK or private key for signing strategy
     const response = await this.authriteClient.request(`${this.peerServHost}/listMessages`, {
       body: {
@@ -119,7 +164,7 @@ class Tokenator {
    * @param {Array}  obj.messageIds An array of Numbers indicating which message(s) to acknowledge
    * @returns {Array} of messages formatted according to the particular protocol in use
    */
-  async acknowledgeMessage ({ messageIds }) {
+  async acknowledgeMessage({ messageIds }) {
     // Make an acknowledgement request to PeerServ over Authrite
     const acknowledged = await this.authriteClient.request(`${this.peerServHost}/acknowledgeMessage`, {
       body: {
@@ -136,6 +181,33 @@ class Tokenator {
       throw e
     }
     return parsedAcknowledged.status
+  }
+
+  xorPublicKeys(hex1, hex2) {
+    // Ensure both hex strings are of equal length
+    if (hex1.length !== hex2.length) {
+      throw new Error('Hex strings must be of the same length')
+    }
+
+    let result = ''
+
+    // Iterate over each hex character pair (byte)
+    for (let i = 0; i < hex1.length; i += 2) {
+      // Extract a byte from each hex string and convert to a number
+      const byte1 = parseInt(hex1.substr(i, 2), 16)
+      const byte2 = parseInt(hex2.substr(i, 2), 16)
+
+      // XOR the bytes and convert back to a hex string
+      let xorResult = (byte1 ^ byte2).toString(16)
+
+      // Pad single-digit hex numbers with a leading 0
+      xorResult = xorResult.padStart(2, '0')
+
+      // Append the result to the output string
+      result += xorResult
+    }
+
+    return result
   }
 }
 module.exports = Tokenator
