@@ -36,12 +36,6 @@ class Tokenator {
     this.joinedRooms = []
   }
 
-  listenForLiveMessages({ onMessage }) {
-    initializeConnection()
-    // Setup an event handler for receiving messages
-    this.io.on('sendMessage', onMessage)
-  }
-
   async initializeConnection() {
     // Configure the identity key
     if (!this.myIdentityKey) {
@@ -61,6 +55,13 @@ class Tokenator {
       // }
       // roomId = `${this.myIdentityKey}-${messageBox}`
     }
+  }
+
+
+  listenForLiveMessages({ onMessage }) {
+    initializeConnection()
+    // Setup an event handler for receiving messages
+    this.io.on('sendMessage', onMessage)
   }
 
   async sendLiveMessage({ message, messageBox, recipient }) {
