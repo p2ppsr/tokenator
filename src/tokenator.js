@@ -47,7 +47,7 @@ class Tokenator {
     }
 
     if (!this.io) {
-      this.io = this.authriteClient.connect(this.peerServHost)
+      this.io = await this.authriteClient.connect(this.peerServHost)
 
       // let roomId
       // if (!recipient) {
@@ -64,7 +64,7 @@ class Tokenator {
   }
 
   async sendLiveMessage({ message, messageBox, recipient }) {
-    this.initializeConnection()
+    await this.initializeConnection()
 
     // Join a room
     const roomId = `${recipient}-${messageBox}`
