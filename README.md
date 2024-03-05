@@ -57,12 +57,18 @@ init()
     *   [Properties](#properties)
 *   [Tokenator](#tokenator)
     *   [Parameters](#parameters)
-    *   [sendMessage](#sendmessage)
+    *   [initializeConnection](#initializeconnection)
         *   [Parameters](#parameters-1)
-    *   [listMessages](#listmessages)
+    *   [listenForLiveMessages](#listenforlivemessages)
         *   [Parameters](#parameters-2)
-    *   [acknowledgeMessage](#acknowledgemessage)
+    *   [sendLiveMessage](#sendlivemessage)
         *   [Parameters](#parameters-3)
+    *   [sendMessage](#sendmessage)
+        *   [Parameters](#parameters-4)
+    *   [listMessages](#listmessages)
+        *   [Parameters](#parameters-5)
+    *   [acknowledgeMessage](#acknowledgemessage)
+        *   [Parameters](#parameters-6)
 
 ### PeerServMessage
 
@@ -89,17 +95,50 @@ Extendable class for interacting with a PeerServ
     *   `obj.peerServHost` **[String](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** The PeerServ host you want to connect to (optional, default `'https://staging-peerserv.babbage.systems'`)
     *   `obj.clientPrivateKey` **[String](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** A private key to use for mutual authentication with Authrite. (Defaults to Babbage signing strategy)
 
+#### initializeConnection
+
+Establish an initial socket connection to a room
+The room ID is based on your identityKey and the messageBox
+
+##### Parameters
+
+*   `messageBox` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+#### listenForLiveMessages
+
+Start listening on your "public" message room
+Anyone can send you a message here
+
+##### Parameters
+
+*   `obj` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** all params given in an object
+
+    *   `obj.onMessage` **[function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function)** onMessage handler function
+    *   `obj.messageBox` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** name of messageBox to listen on
+
+#### sendLiveMessage
+
+Send a message over sockets, with a backup of messageBox delivery
+
+##### Parameters
+
+*   `obj` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** all params given in an object
+
+    *   `obj.message` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The message contents to send
+    *   `obj.messageBox` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The messageBox the message should be sent to depending on the protocol being used
+    *   `obj.recipient` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The identityKey of the intended recipient
+
 #### sendMessage
 
 Sends a message to a PeerServ recipient
 
 ##### Parameters
 
-*   `message` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** The object containing the message params
+*   `message` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** The object containing the message params
 
     *   `message.recipient` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The identityKey of the intended recipient
     *   `message.messageBox` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The messageBox the message should be sent to depending on the protocol being used
-    *   `message.body` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The body of the message
+    *   `message.body` **([string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String) | [object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object))** The body of the message
 
 Returns **[String](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** status message
 
