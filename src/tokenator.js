@@ -51,19 +51,21 @@ class Tokenator {
       }
     }
 
+    let delay = 0
     if (!this.authriteClient.socket) {
+      delay = 3000
       await this.authriteClient.connect(this.peerServHost)
-
-      // Wait until the connection response has been sent
-      // TODO: Support a callback or similar function from the authrite side.
-      await setTimeout(async () => {
-        const roomId = `${this.myIdentityKey}-${messageBox}`
-        if (!this.joinedRooms.some(x => x === roomId)) {
-          await this.authriteClient.emit('joinRoom', roomId)
-          this.joinedRooms.push(roomId)
-        }
-      }, 3000)
     }
+    const roomId = `${this.myIdentityKey}-${messageBox}`
+
+    // Wait until the connection response has been sent
+    // TODO: Support a callback or similar function from the authrite side.
+    await new Promise(resolve => setTimeout(resolve, delay))
+    if (!this.joinedRooms.some(x => x === roomId)) {
+      await this.authriteClient.emit('joinRoom', roomId)
+      this.joinedRooms.push(roomId)
+    }
+    return roomId
   }
 
   /**
@@ -74,9 +76,9 @@ class Tokenator {
    * @param {string} obj.messageBox - name of messageBox to listen on 
    */
   async listenForLiveMessages({ onMessage, messageBox }) {
-    await this.initializeConnection(messageBox)
+    let roomId = await this.initializeConnection(messageBox)
 
-    this.authriteClient.on('sendMessage', async (payload) => {
+    this.authriteClient.on(`sendMessage-${roomId}`, async (payload) => {
       onMessage(payload.message)
       await this.acknowledgeMessage({ messageIds: [payload.message.messageId] })
     })
