@@ -36,6 +36,11 @@ class Tokenator {
     this.joinedRooms = []
   }
 
+  /**
+   * Establish an initial socket connection to a room
+   * The room ID is based on your identityKey and the messageBox
+   * @param {string} messageBox 
+   */
   async initializeConnection(messageBox) {
     // Configure the identity key
     if (!this.myIdentityKey) {
@@ -48,12 +53,16 @@ class Tokenator {
 
     if (!this.authriteClient.socket) {
       await this.authriteClient.connect(this.peerServHost)
-    }
-    const roomId = `${this.myIdentityKey}-${messageBox}`
 
-    if (!this.joinedRooms.some(x => x === roomId)) {
-      await this.authriteClient.emit('joinRoom', roomId)
-      this.joinedRooms.push(roomId)
+      // Wait until the connection response has been sent
+      // TODO: Support a callback or similar function from the authrite side.
+      await setTimeout(async () => {
+        const roomId = `${this.myIdentityKey}-${messageBox}`
+        if (!this.joinedRooms.some(x => x === roomId)) {
+          await this.authriteClient.emit('joinRoom', roomId)
+          this.joinedRooms.push(roomId)
+        }
+      }, 3000)
     }
   }
 
@@ -76,6 +85,9 @@ class Tokenator {
   /**
    * Send a message over sockets, with a backup of messageBox delivery
    * @param {object} obj all params given in an object
+   * @param {string} obj.message The message contents to send
+   * @param {string} obj.messageBox The messageBox the message should be sent to depending on the protocol being used
+   * @param {string} obj.recipient The identityKey of the intended recipient
    */
   async sendLiveMessage({ message, messageBox, recipient }) {
     await this.initializeConnection()
@@ -87,7 +99,6 @@ class Tokenator {
       body: message
     })
 
-    // Join a room to emit to
     const roomId = `${recipient}-${messageBox}`
     // Also send over sockets so they can receive it if they are online
     await this.authriteClient.emit('sendMessage', {
