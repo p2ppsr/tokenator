@@ -43,7 +43,8 @@ describe('tokenator', () => {
     const tokenator = new Tokenator()
     const expectedInstance = {
       peerServHost: 'https://staging-peerserv.babbage.systems',
-      authriteClient: {}
+      authriteClient: {},
+      joinedRooms: []
     }
     expect(JSON.parse(JSON.stringify(tokenator))).toEqual(
       expectedInstance
@@ -70,6 +71,7 @@ describe('tokenator', () => {
       messageBox: 'test_inbox'
     })).rejects.toHaveProperty('code', 'ERR_MESSAGE_BODY_REQUIRED')
   })
+  // Note: requires local MetaNet Client
   it('Sends a message', async () => {
     const tokenator = new Tokenator()
     tokenator.authriteClient.request.mockImplementation(() => {
