@@ -141,7 +141,7 @@ class Tokenator {
       throw e
     }
 
-    const hmac = await createHmac({ data: Buffer.from(JSON.stringify(message.body)), protocolID: `${message.messageBox} peerserv`, keyID: '1', counterparty: message.recipient })
+    const hmac = await createHmac({ data: Buffer.from(JSON.stringify(message.body)), protocolID: [0, 'PeerServ'], keyID: '1', counterparty: message.recipient })
     const messageId = Buffer.from(hmac).toString('hex')
 
     // Notify server about the new message
