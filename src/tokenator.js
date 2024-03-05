@@ -1,5 +1,5 @@
 const { Authrite } = require('authrite-js')
-const { getPublicKey } = require('@babbage/sdk-ts')
+const { getPublicKey, createHmac } = require('@babbage/sdk-ts')
 
 /**
    * Defines the structure of a PeerServ Message
@@ -57,12 +57,25 @@ class Tokenator {
     }
   }
 
+  // Start listening on the "public" message room
+  // Anyone can send you a message here
   async listenForLiveMessages({ onMessage, messageBox }) {
     await this.initializeConnection(messageBox)
     // Setup an event handler for receiving messages
     const roomId = `${this.myIdentityKey}-${messageBox}`
     // this.io.on(roomId, onMessage)
-    this.io.on('sendMessage', onMessage)
+    this.io.on('sendMessage', async (payload) => {
+      const hmac = await createHmac({ data: roomId, protocolID: `${messageBox} private`, keyID: '1', counterparty: payload.sender })
+      const privateRoomId = Buffer.from(hmac).toString('hex')
+      if (!this.joinedRooms.some(x => x === privateRoomId)) {
+        console.log('Joining private room:', privateRoomId)
+        await this.io.emit('joinRoom', privateRoomId)
+        this.joinedRooms.push(privateRoomId)
+      } else {
+        console.log(payload.message)
+        onMessage(payload)
+      }
+    })
   }
 
   async sendLiveMessage({ message, messageBox, recipient }) {
@@ -71,13 +84,20 @@ class Tokenator {
     // Join a room
     const roomId = `${recipient}-${messageBox}`
 
+    const hmac = await createHmac({ data: roomId, protocolID: `${messageBox} private`, keyID: '1', counterparty: recipient })
+    const privateRoomId = Buffer.from(hmac).toString('hex')
+
     if (!this.joinedRooms.some(x => x === roomId)) {
       await this.io.emit('joinRoom', roomId)
+      await this.io.emit('joinRoom', privateRoomId)
       this.joinedRooms.push(roomId)
-    }
+      this.joinedRooms.push(privateRoomId)
 
-    // Send a message to the server to get a response
-    await this.io.emit('sendMessage', { roomId: roomId, message: message })
+      // Send a message to the server to get a response
+      await this.io.emit('sendMessage', { roomId: roomId, message: message })
+    } else {
+      await this.io.emit('sendMessage', { roomId: privateRoomId, message: message })
+    }
   }
 
   /**
