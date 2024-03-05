@@ -91,22 +91,26 @@ class Tokenator {
    */
   async sendLiveMessage({ message, messageBox, recipient }) {
     await this.initializeConnection()
-
-    // Send the message to the recipients message box first
-    const result = await this.sendMessage({
-      recipient,
-      messageBox,
-      body: message
-    })
-
     const roomId = `${recipient}-${messageBox}`
-    // Also send over sockets so they can receive it if they are online
+
+    // Compute the messageId
+    const hmac = await createHmac({ data: Buffer.from(JSON.stringify(message)), protocolID: [0, 'PeerServ'], keyID: '1', counterparty: recipient })
+    const messageId = Buffer.from(hmac).toString('hex')
+
+    // Send over sockets so they can receive it if they are online
     await this.authriteClient.emit('sendMessage', {
       roomId: roomId,
       message: {
         message,
-        messageId: result.messageId
+        messageId: messageId
       }
+    })
+
+    // Also send the message to the recipients message box
+    await this.sendMessage({
+      recipient,
+      messageBox,
+      body: message
     })
   }
 
@@ -116,6 +120,7 @@ class Tokenator {
    * @param {string} message.recipient The identityKey of the intended recipient
    * @param {string} message.messageBox The messageBox the message should be sent to depending on the protocol being used
    * @param {string | object} message.body The body of the message
+   * @param {string} [message.messageId] Optional messageId to be used for the message to send
    * @returns {String} status message
    */
   async sendMessage(message) {
@@ -141,8 +146,11 @@ class Tokenator {
       throw e
     }
 
-    const hmac = await createHmac({ data: Buffer.from(JSON.stringify(message.body)), protocolID: [0, 'PeerServ'], keyID: '1', counterparty: message.recipient })
-    const messageId = Buffer.from(hmac).toString('hex')
+    // If a messageId is not provided, compute it
+    if (!message.messageId) {
+      const hmac = await createHmac({ data: Buffer.from(JSON.stringify(message.body)), protocolID: [0, 'PeerServ'], keyID: '1', counterparty: message.recipient })
+      message.messageId = Buffer.from(hmac).toString('hex')
+    }
 
     // Notify server about the new message
     // Note: this structure for the message must be enforced, but the message body can conform to the specific protocol in use
@@ -151,7 +159,7 @@ class Tokenator {
         message: {
           recipient: message.recipient,
           messageBox: message.messageBox,
-          messageId,
+          messageId: message.messageId,
           body: JSON.stringify(message.body)
         }
       },
@@ -167,7 +175,7 @@ class Tokenator {
     // Return the success message and messageId
     return {
       ...parsedResponse,
-      messageId
+      messageId: message.messageId
     }
   }
 
