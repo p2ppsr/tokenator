@@ -220,32 +220,5 @@ class Tokenator {
     }
     return parsedAcknowledged.status
   }
-
-  xorPublicKeys(hex1, hex2) {
-    // Ensure both hex strings are of equal length
-    if (hex1.length !== hex2.length) {
-      throw new Error('Hex strings must be of the same length')
-    }
-
-    let result = ''
-
-    // Iterate over each hex character pair (byte)
-    for (let i = 0; i < hex1.length; i += 2) {
-      // Extract a byte from each hex string and convert to a number
-      const byte1 = parseInt(hex1.substr(i, 2), 16)
-      const byte2 = parseInt(hex2.substr(i, 2), 16)
-
-      // XOR the bytes and convert back to a hex string
-      let xorResult = (byte1 ^ byte2).toString(16)
-
-      // Pad single-digit hex numbers with a leading 0
-      xorResult = xorResult.padStart(2, '0')
-
-      // Append the result to the output string
-      result += xorResult
-    }
-
-    return result
-  }
 }
 module.exports = Tokenator
