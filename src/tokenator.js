@@ -144,7 +144,7 @@ class Tokenator {
     const hmac = await createHmac({ data: Buffer.from(JSON.stringify(message.body)), protocolID: `${message.messageBox} peerserv`, keyID: '1', counterparty: message.recipient })
     const messageId = Buffer.from(hmac).toString('hex')
 
-    // Notify the token management server about the new token
+    // Notify server about the new message
     // Note: this structure for the message must be enforced, but the message body can conform to the specific protocol in use
     const response = await this.authriteClient.request(`${this.peerServHost}/sendMessage`, {
       body: {
@@ -164,7 +164,7 @@ class Tokenator {
       e.code = parsedResponse.code
       throw e
     }
-    // Return the success message
+    // Return the success message and messageId
     return {
       ...parsedResponse,
       messageId
