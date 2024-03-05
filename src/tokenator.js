@@ -46,66 +46,65 @@ class Tokenator {
       }
     }
 
-    if (!this.io) {
-      this.io = await this.authriteClient.connect(this.peerServHost)
+    if (!this.authriteClient.socket) {
+      await this.authriteClient.connect(this.peerServHost)
     }
     const roomId = `${this.myIdentityKey}-${messageBox}`
 
     if (!this.joinedRooms.some(x => x === roomId)) {
-      await this.io.emit('joinRoom', roomId)
+      await this.authriteClient.emit('joinRoom', roomId)
       this.joinedRooms.push(roomId)
-    }
-  }
-
-  // Start listening on the "public" message room
-  // Anyone can send you a message here
-  async listenForLiveMessages({ onMessage, messageBox }) {
-    await this.initializeConnection(messageBox)
-    // Setup an event handler for receiving messages
-    const roomId = `${this.myIdentityKey}-${messageBox}`
-    // this.io.on(roomId, onMessage)
-    this.io.on('sendMessage', async (payload) => {
-      const hmac = await createHmac({ data: roomId, protocolID: `${messageBox} private`, keyID: '1', counterparty: payload.sender })
-      const privateRoomId = Buffer.from(hmac).toString('hex')
-      if (!this.joinedRooms.some(x => x === privateRoomId)) {
-        console.log('Joining private room:', privateRoomId)
-        await this.io.emit('joinRoom', privateRoomId)
-        this.joinedRooms.push(privateRoomId)
-      } else {
-        console.log(payload.message)
-        onMessage(payload)
-      }
-    })
-  }
-
-  async sendLiveMessage({ message, messageBox, recipient }) {
-    await this.initializeConnection()
-
-    // Join a room
-    const roomId = `${recipient}-${messageBox}`
-
-    const hmac = await createHmac({ data: roomId, protocolID: `${messageBox} private`, keyID: '1', counterparty: recipient })
-    const privateRoomId = Buffer.from(hmac).toString('hex')
-
-    if (!this.joinedRooms.some(x => x === roomId)) {
-      await this.io.emit('joinRoom', roomId)
-      await this.io.emit('joinRoom', privateRoomId)
-      this.joinedRooms.push(roomId)
-      this.joinedRooms.push(privateRoomId)
-
-      // Send a message to the server to get a response
-      await this.io.emit('sendMessage', { roomId: roomId, message: message })
-    } else {
-      await this.io.emit('sendMessage', { roomId: privateRoomId, message: message })
     }
   }
 
   /**
+   * Start listening on your "public" message room
+   * Anyone can send you a message here
+   * @param {object} obj - all params given in an object
+   * @param {function} obj.onMessage - onMessage handler function
+   * @param {string} obj.messageBox - name of messageBox to listen on 
+   */
+  async listenForLiveMessages({ onMessage, messageBox }) {
+    await this.initializeConnection(messageBox)
+
+    this.authriteClient.on('sendMessage', async (payload) => {
+      onMessage(payload.message)
+      await this.acknowledgeMessage({ messageIds: [payload.message.messageId] })
+    })
+  }
+
+  /**
+   * Send a message over sockets, with a backup of messageBox delivery
+   * @param {object} obj all params given in an object
+   */
+  async sendLiveMessage({ message, messageBox, recipient }) {
+    await this.initializeConnection()
+
+    // Send the message to the recipients message box first
+    const result = await this.sendMessage({
+      recipient,
+      messageBox,
+      body: message
+    })
+
+    // Join a room to emit to
+    const roomId = `${recipient}-${messageBox}`
+    // Also send over sockets so they can receive it if they are online
+    await this.authriteClient.emit('sendMessage', {
+      roomId: roomId,
+      message: {
+        message,
+        messageId: result.messageId
+      }
+    })
+  }
+
+  /**
    * Sends a message to a PeerServ recipient
-   * @param {Object} message The object containing the message params
+   * @param {object} message The object containing the message params
    * @param {string} message.recipient The identityKey of the intended recipient
    * @param {string} message.messageBox The messageBox the message should be sent to depending on the protocol being used
-   * @param {string} message.body The body of the message
+   * @param {string | object} message.body The body of the message
    * @returns {String} status message
    */
   async sendMessage(message) {
@@ -131,6 +130,9 @@ class Tokenator {
       throw e
     }
 
+    const hmac = await createHmac({ data: Buffer.from(JSON.stringify(message.body)), protocolID: `${message.messageBox} peerserv`, keyID: '1', counterparty: message.recipient })
+    const messageId = Buffer.from(hmac).toString('hex')
+
     // Notify the token management server about the new token
     // Note: this structure for the message must be enforced, but the message body can conform to the specific protocol in use
     const response = await this.authriteClient.request(`${this.peerServHost}/sendMessage`, {
@@ -138,6 +140,7 @@ class Tokenator {
         message: {
           recipient: message.recipient,
           messageBox: message.messageBox,
+          messageId,
           body: JSON.stringify(message.body)
         }
       },
@@ -151,7 +154,10 @@ class Tokenator {
       throw e
     }
     // Return the success message
-    return parsedResponse.message
+    return {
+      ...parsedResponse,
+      messageId
+    }
   }
 
   /**
