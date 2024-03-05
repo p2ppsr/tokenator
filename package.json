@@ -1,6 +1,6 @@
 {
   "name": "@babbage/tokenator",
-  "version": "0.1.29",
+  "version": "0.2.6",
   "description": "The ultimate tool for creating and transferring tokens",
   "main": "src/tokenator.js",
   "scripts": {
@@ -25,7 +25,6 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "@babbage/sdk-ts": "^0.2.7",
     "authrite-js": "^0.4.7"
   }
 }
