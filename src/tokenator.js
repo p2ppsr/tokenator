@@ -88,19 +88,19 @@ class Tokenator {
    * @param {string} obj.messageBox The messageBox the message should be sent to depending on the protocol being used
    * @param {string} obj.recipient The identityKey of the intended recipient
    */
-  async sendLiveMessage({ message, messageBox, recipient }) {
+  async sendLiveMessage({ body, messageBox, recipient }) {
     await this.initializeConnection()
     const roomId = `${recipient}-${messageBox}`
 
     // Compute the messageId
-    const hmac = await createHmac({ data: Buffer.from(JSON.stringify(message)), protocolID: [0, 'PeerServ'], keyID: '1', counterparty: recipient })
+    const hmac = await createHmac({ data: Buffer.from(JSON.stringify(body)), protocolID: [0, 'PeerServ'], keyID: '1', counterparty: recipient })
     const messageId = Buffer.from(hmac).toString('hex')
 
     // Send over sockets so they can receive it if they are online
     await this.authriteClient.emit('sendMessage', {
       roomId: roomId,
       message: {
-        message,
+        message: body,
         messageId: messageId
       }
     })
@@ -109,7 +109,7 @@ class Tokenator {
     await this.sendMessage({
       recipient,
       messageBox,
-      body: message
+      body
     })
   }
 
