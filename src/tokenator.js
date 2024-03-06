@@ -75,9 +75,9 @@ class Tokenator {
 
     // Note: Multiple event handlers per messageBox are currently allowed.
     // TODO: Determine if this should be supported
-    this.authriteClient.on(`sendMessage-${roomId}`, async (payload) => {
-      onMessage(payload.message)
-      await this.acknowledgeMessage({ messageIds: [payload.message.messageId] })
+    this.authriteClient.on(`sendMessage-${roomId}`, async (message) => {
+      onMessage(message)
+      await this.acknowledgeMessage({ messageIds: [message.messageId] })
     })
   }
 
@@ -100,7 +100,7 @@ class Tokenator {
     await this.authriteClient.emit('sendMessage', {
       roomId: roomId,
       message: {
-        message: body,
+        body,
         messageId: messageId
       }
     })
