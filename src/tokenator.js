@@ -39,7 +39,7 @@ class Tokenator {
   /**
    * Establish an initial socket connection to a room
    * The room ID is based on your identityKey and the messageBox
-   * @param {string} messageBox 
+   * @param {string} messageBox
    */
   async initializeConnection(messageBox) {
     // Configure the identity key
@@ -69,15 +69,18 @@ class Tokenator {
    * @param {object} obj - all params given in an object
    * @param {function} obj.onMessage - onMessage handler function
    * @param {string} obj.messageBox - name of messageBox to listen on 
+   * @param {boolean} obj.autoAcknowledge - determines if live messages should be automatically acknowledged and deleted from the server. 
    */
-  async listenForLiveMessages({ onMessage, messageBox }) {
-    let roomId = await this.initializeConnection(messageBox)
+  async listenForLiveMessages({ onMessage, messageBox, autoAcknowledge = true }) {
+    const roomId = await this.initializeConnection(messageBox)
 
     // Note: Multiple event handlers per messageBox are currently allowed.
     // TODO: Determine if this should be supported
     this.authriteClient.on(`sendMessage-${roomId}`, async (message) => {
       onMessage(message)
-      await this.acknowledgeMessage({ messageIds: [message.messageId] })
+      if (autoAcknowledge) {
+        await this.acknowledgeMessage({ messageIds: [message.messageId] })
+      }
     })
   }
 
