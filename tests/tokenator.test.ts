@@ -1,9 +1,11 @@
-/* eslint-env jest */
-const Tokenator = require('../tokenator')
+import { Tokenator } from '../src/Tokenator'
+import 'authrite-js' // TODO: needs types
+
 jest.mock('authrite-js')
 
-describe('tokenator', () => {
+describe('Tokenator', () => {
   beforeEach(() => {
+    // Setup code here if needed
   })
 
   const VALID_SEND_RESULT = {
@@ -12,6 +14,7 @@ describe('tokenator', () => {
       message: 'Your message has been sent!'
     })
   }
+
   const VALID_LIST_AND_READ_RESULT = {
     body: JSON.stringify({
       status: 200,
@@ -29,6 +32,7 @@ describe('tokenator', () => {
       ]
     })
   }
+
   const VALID_ACK_RESULT = {
     body: JSON.stringify({
       status: 200,
@@ -39,39 +43,41 @@ describe('tokenator', () => {
   afterEach(() => {
     jest.clearAllMocks()
   })
+
   it('Creates an instance of the Tokenator class', async () => {
     const tokenator = new Tokenator()
     const expectedInstance = {
       peerServHost: 'https://staging-peerserv.babbage.systems',
-      authriteClient: {},
+      authriteClient: {}, // Depending on the implementation, might need a more detailed mock or spy
       joinedRooms: []
     }
-    expect(JSON.parse(JSON.stringify(tokenator))).toEqual(
-      expectedInstance
-    )
+    expect(JSON.parse(JSON.stringify(tokenator))).toEqual(expectedInstance)
   }, 100000)
-  it('Throws an error a message does not contain a recipient', async () => {
+
+  it('Throws an error if a message does not contain a recipient', async () => {
     const tokenator = new Tokenator()
     await expect(tokenator.sendMessage({
       messageBox: 'test_inbox',
       body: {}
     })).rejects.toHaveProperty('code', 'ERR_MESSAGE_RECIPIENT_REQUIRED')
   }, 100000)
-  it('Throws an error a message does not contain a messageBox', async () => {
+
+  it('Throws an error if a message does not contain a messageBox', async () => {
     const tokenator = new Tokenator()
     await expect(tokenator.sendMessage({
       recipient: 'mockIdentityKey',
       body: {}
     })).rejects.toHaveProperty('code', 'ERR_MESSAGEBOX_REQUIRED')
   })
-  it('Throws an error a message does not contain a body', async () => {
+
+  it('Throws an error if a message does not contain a body', async () => {
     const tokenator = new Tokenator()
     await expect(tokenator.sendMessage({
       recipient: 'mockIdentityKey',
       messageBox: 'test_inbox'
     })).rejects.toHaveProperty('code', 'ERR_MESSAGE_BODY_REQUIRED')
   })
-  // Note: requires local MetaNet Client
+
   it('Sends a message', async () => {
     const tokenator = new Tokenator()
     tokenator.authriteClient.request.mockImplementation(() => {
@@ -84,6 +90,7 @@ describe('tokenator', () => {
     })
     expect(result).toEqual('Your message has been sent!')
   })
+
   it('Lists available messages', async () => {
     const tokenator = new Tokenator()
     tokenator.authriteClient.request.mockImplementation(() => {
@@ -94,14 +101,14 @@ describe('tokenator', () => {
     })
     expect(result).toEqual(JSON.parse(VALID_LIST_AND_READ_RESULT.body).messages)
   })
+
   it('Acknowledges a message', async () => {
     const tokenator = new Tokenator()
     tokenator.authriteClient.request.mockImplementation(() => {
       return VALID_ACK_RESULT
     })
-    const result = await tokenator.acknowledgeMessage({
-      messageIds: [42]
-    })
+    const result = await tokenator.acknowledgeMessage
+
     expect(result).toEqual(200)
   })
 })
