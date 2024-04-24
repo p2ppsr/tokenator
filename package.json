@@ -26,6 +26,6 @@
   },
   "dependencies": {
     "@babbage/sdk-ts": "^0.2.19",
-    "authrite-js": "^0.4.22"
+    "authrite-js": "^0.4.23"
   }
 }
