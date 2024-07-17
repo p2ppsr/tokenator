@@ -25,7 +25,7 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "@babbage/sdk-ts": "^0.2.42",
-    "authrite-js": "^0.4.32"
+    "@babbage/sdk-ts": "^0.2.47",
+    "authrite-js": "^0.4.33"
   }
 }
