@@ -15,7 +15,7 @@ With Tokenator, developers can take advantage of the power of the BSV blockchain
 ## Example Usage
 
 ```js
-const Tokenator = require('@babage/tokenator')
+const Tokenator = require('@babbage/tokenator')
 const johnSmith = '022600d2ef37d123fdcac7d25d7a464ada7acd3fb65a0daf85412140ee20884311'
 
 const init = async () => {
