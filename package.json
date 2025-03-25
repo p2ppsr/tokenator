@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@babbage/sdk-ts": "^0.2.18",
+    "@bsv/sdk": "^1.4.11",
     "authrite-js": "^0.4.21"
   }
 }
