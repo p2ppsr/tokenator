@@ -1,31 +1,52 @@
 {
   "name": "@babbage/tokenator",
-  "version": "0.2.37",
+  "version": "1.0.0",
   "description": "The ultimate tool for creating and transferring tokens",
-  "main": "src/tokenator.js",
+  "type": "module",
+  "main": "dist/cjs/mod.js",
+  "module": "dist/esm/mod.js",
+  "types": "dist/types/mod.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "mod.ts",
+    "LICENSE.txt"
+  ],
   "scripts": {
-    "doc": "documentation readme --section=API src/tokenator.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "lint": "standard --fix .",
-    "build": "webpack --config webpack.prod.js",
-    "prepublishOnly": "npm run build"
+    "test": "npm run build && jest",
+    "test:watch": "npm run build && jest --watch",
+    "test:coverage": "npm run build && jest --coverage",
+    "lint:ci": "ts-standard src/**/*.ts",
+    "lint": "ts-standard --fix src/**/*.ts",
+    "build": "npm run build:ts && npm run build:umd",
+    "build:ts": "tsc -b && tsconfig-to-dual-package tsconfig.cjs.json",
+    "build:umd": "webpack --config webpack.config.js",
+    "dev": "tsc -b -w",
+    "prepublish": "npm run build",
+    "doc": "ts2md"
   },
   "author": "Peer-to-peer Privacy Systems Research, LLC",
   "license": "Open BSV License",
   "devDependencies": {
-    "documentation": "^13.2.5",
-    "jest": "^26.6.3",
-    "node-polyfill-webpack-plugin": "^1.1.4",
-    "standard": "^17.0.0",
-    "webpack": "^5.73.0",
-    "webpack-bundle-analyzer": "^4.7.0",
-    "webpack-cli": "^4.10.0",
-    "webpack-dev-server": "^4.9.2",
-    "webpack-merge": "^5.8.0"
+    "@eslint/js": "^9.23.0",
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.13.14",
+    "eslint": "^9.23.0",
+    "globals": "^16.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "ts-jest": "^29.3.1",
+    "ts-loader": "^9.5.2",
+    "ts-standard": "^12.0.2",
+    "ts2md": "^0.2.8",
+    "tsconfig-to-dual-package": "^1.2.0",
+    "typescript": "5.1",
+    "typescript-eslint": "^8.29.0",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "@babbage/sdk-ts": "^0.2.54",
-    "authrite-js": "^0.4.36"
+    "@bsv/sdk": "^1.6.0"
   }
 }
