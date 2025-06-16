@@ -10,7 +10,7 @@ export default {
   output: {
     filename: 'bundle.js', // Output single bundled file
     path: path.resolve(__dirname, 'dist', 'umd'), // Output directory
-    library: 'messageBoxClient',
+    library: 'tokenator',
     libraryTarget: 'umd',
     globalObject: 'this'
   },

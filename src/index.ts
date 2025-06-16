@@ -27,6 +27,7 @@ export interface TokenatorOptions {
   overlayService?: string
   /** If true, `createToken` / `updateToken` encrypt by default. */
   encryptByDefault?: boolean
+  acceptDelayedBroadcast?: boolean
 }
 
 export interface TokenOutput {
@@ -73,6 +74,7 @@ export class Tokenator {
   private readonly overlayService: string
   private readonly wallet: WalletInterface
   private readonly defaultEncrypt: boolean
+  private readonly acceptDelayedBroadcast: boolean
 
   constructor(
     opts: TokenatorOptions,
@@ -89,6 +91,7 @@ export class Tokenator {
     this.overlayService = opts.overlayService ?? 'ls_tokenator'
     this.wallet = wallet
     this.defaultEncrypt = !!opts.encryptByDefault
+    this.acceptDelayedBroadcast = opts.acceptDelayedBroadcast ?? true
   }
 
   /* ──────────────────────────────  Create  ───────────────────────────── */
@@ -116,7 +119,7 @@ export class Tokenator {
         outputDescription: 'Tokenator token',
         ...(this.tracking === 'local' ? { basket: this.basket! } : {})
       }],
-      options: { acceptDelayedBroadcast: false, randomizeOutputs: false }
+      options: { acceptDelayedBroadcast: this.acceptDelayedBroadcast, randomizeOutputs: false }
     })
     if (!tx) throw new Error('Failed to create transaction')
 
@@ -162,7 +165,7 @@ export class Tokenator {
         outputDescription: 'Updated Tokenator token',
         ...(this.tracking === 'local' ? { basket: this.basket! } : {})
       }],
-      options: { acceptDelayedBroadcast: false, randomizeOutputs: false }
+      options: { acceptDelayedBroadcast: this.acceptDelayedBroadcast, randomizeOutputs: false }
     })
     if (!signableTransaction) throw new Error('Unable to update token')
 
@@ -202,7 +205,7 @@ export class Tokenator {
         unlockingScriptLength: 74,
         inputDescription: 'Redeem token'
       }],
-      options: { acceptDelayedBroadcast: false, randomizeOutputs: false }
+      options: { acceptDelayedBroadcast: this.acceptDelayedBroadcast, randomizeOutputs: false }
     })
     if (!signableTransaction) throw new Error('Unable to redeem token')
 
